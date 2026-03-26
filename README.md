@@ -32,9 +32,9 @@ O objetivo deste projeto foi transformar 500 registros de navegação brutos em 
 3.  **Análise de Perfis:** Segmentação de clientes com base em quartis para definir o avatar de "Alto Valor".
 4.  **Análise Multivariada:** Aplicação de Matrizes de Correlação e Covariância para validar as alavancas de ticket médio.
 
-## � Resultados e Descobertas (Principais Insights)
+## ✨  Resultados e Descobertas (Principais Insights)
 
-> 💡 **Hero Metric:** Ticket médio estabelecido em **R$ 252,70**, com forte correlação temporal indicando que o engajamento dita o volume final da cesta de compras.
+>  **Hero Metric:** Ticket médio estabelecido em **R$ 252,70**, com forte correlação temporal indicando que o engajamento dita o volume final da cesta de compras.
 
 ### Tabela de Insights de Negócio
 
