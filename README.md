@@ -2,7 +2,7 @@
   <img src="assets/dsa-python-miniprojeto3/og-image.svg" width="100%" alt="Banner E-commerce Analytics">
 </div>
 
-# 🎯 E-commerce Analytics: Análise Estatística de Dados com NumPy
+# 🎯 Análise Estatística de Dados com NumPy
 
 > Análise para identificar perfis de conversão, engajamento e oportunidades ocultas de remarketing.
 
