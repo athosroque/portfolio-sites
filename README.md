@@ -4,7 +4,7 @@
 
 # 🎯 E-commerce Analytics: Análise Estatística de Dados com NumPy
 
-> Análise matemática profunda para identificar perfis de conversão, engajamento e oportunidades ocultas de remarketing.
+> Análise para identificar perfis de conversão, engajamento e oportunidades ocultas de remarketing.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?style=flat-square&logo=jupyter&logoColor=white)
