@@ -1,0 +1,74 @@
+{
+    "title": "E-commerce Analytics: Análise Estatística de Dados com NumPy",
+    "slug": "dsa-python-miniprojeto3",
+    "domain": "Marketing / E-commerce Analytics",
+    "tech_stack": {
+        "main_lib": "NumPy",
+        "supporting_libs": [
+            "Pandas",
+            "Matplotlib",
+            "Seaborn"
+        ],
+        "python_version": "3.10+"
+    },
+    "business_context": {
+        "problem": "Subutilização de dados de navegação e compra no e-commerce. Campanhas genéricas e perda de oportunidades de conversão.",
+        "goal": "Utilizar análise estatística para segmentar clientes, identificar indicadores de comportamento e fornecer insights para marketing e produto.",
+        "questions": [
+            "Perfil médio do usuário (visitas, tempo, ticket médio)?",
+            "Características dos clientes de 'Alto Valor'?",
+            "Comportamento de usuários que não compram?",
+            "Correlação entre tempo no site, itens no carrinho e valor da compra?"
+        ]
+    },
+    "data_details": {
+        "source": "Dados sintéticos gerados via NumPy (500 usuários).",
+        "features": [
+            "visitas",
+            "tempo_no_site",
+            "itens_no_carrinho",
+            "valor_compra"
+        ]
+    },
+    "insights": [
+        {
+            "topic": "Perfil Médio",
+            "value": "26 visitas/mês, 33 min de navegação, ticket médio de R$ 252,70."
+        },
+        {
+            "topic": "Clientes de Alto Valor",
+            "value": "Frequência superior (33x) e maior tempo de site (37min) comparado à média geral."
+        },
+        {
+            "topic": "Correlação",
+            "value": "Engajamento (visitas/tempo) tem forte influência na construção do carrinho e valor final (0.83 entre visitas/tempo)."
+        },
+        {
+            "topic": "Oportunidade",
+            "value": "Usuários que não compram visitam menos (7x) e ficam menos tempo (15min), sugerindo ações de remarketing e incentivo inicial."
+        }
+    ],
+    "images": [
+        {
+            "filename": "plot_0.png",
+            "caption": "Distribuição dos Valores de Compra com indicação de média, mediana e desvio padrão."
+        },
+        {
+            "filename": "plot_1.png",
+            "caption": "Matriz de Correlação entre as variáveis de engajamento e conversão."
+        }
+    ],
+    "thematic_color": "#007bff",
+    "narrative": {
+        "storytelling": "Neste projeto, mergulhamos nos dados de um e-commerce fictício para responder uma pergunta vital: o que diferencia um comprador fiel de um visitante curioso? Utilizando apenas o poder matemático do NumPy, transformamos 500 registros de navegação em uma bússola estratégica para marketing e UX.",
+        "technical_decisions": [
+            "Geração de dados sintéticos controlados para simular cenários reais de varejo.",
+            "Uso de estatística descritiva para neutralizar o impacto de outliers nos tickets médios.",
+            "Matriz de correlação para validar a hipótese de que o tempo de permanência é o maior preditor de itens no carrinho."
+        ],
+        "headlines": {
+            "github": "📊 Análise Estatística de Marketing com NumPy: Segmentando o E-commerce",
+            "linkedin": "De dados brutos a decisões de lucro: Como o NumPy revela o comportamento do seu cliente. 🚀"
+        }
+    }
+}
