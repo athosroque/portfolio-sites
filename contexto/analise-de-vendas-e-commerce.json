@@ -1,0 +1,139 @@
+{
+    "slug": "analise-de-vendas-e-commerce",
+    "tipo_projeto": "notebook-eda",
+    "titulo": "Maximizando Receita E-commerce: Estratégia Baseada em Dados",
+    "linguagem": "python",
+    "objetivo": "Identificar padrões de consumo, sazonalidade e novas oportunidades de expansão logística regional.",
+    "problema_resolvido": "Gestão de estoque ineficiente e campanhas de marketing genéricas devido à completa falta de visibilidade analítica em dados reais.",
+    "bibliotecas": [
+        {
+            "nome": "pandas",
+            "alias": "pd",
+            "celulas_de_uso": [
+                1,
+                5,
+                8
+            ]
+        },
+        {
+            "nome": "numpy",
+            "alias": "np",
+            "celulas_de_uso": [
+                2,
+                4
+            ]
+        },
+        {
+            "nome": "matplotlib.pyplot",
+            "alias": "plt",
+            "celulas_de_uso": [
+                9,
+                10
+            ]
+        },
+        {
+            "nome": "seaborn",
+            "alias": "sns",
+            "celulas_de_uso": [
+                11,
+                12
+            ]
+        }
+    ],
+    "celulas_codigo": [
+        {
+            "ordem": 0,
+            "codigo": "import pandas as pd",
+            "output_texto": "",
+            "tem_imagem": false
+        }
+    ],
+    "celulas_markdown": [
+        {
+            "ordem": 0,
+            "conteudo": "# Análise de Vendas Exploratória"
+        }
+    ],
+    "metricas": {
+        "faturamento_total_mi": 5.16,
+        "ticket_medio": 3850.00,
+        "concentracao_regional_sudeste_pct": 41,
+        "peso_eletronicos_pct": 58
+    },
+    "datasets": [
+        "sales_report_raw.csv"
+    ],
+    "imagens_pendentes": [],
+    "versao": 1,
+    "data_processamento": "2026-03-28T20:00:00",
+    "imagens": [
+        {
+            "arquivo": "Analise-de-Vendas-E-commerce/reports/figures/top_10_produtos.png",
+            "descricao": "Demanda e volume agrupados com foco nos top 3 periféricos: Mouse Sem Fio e SSD 1TB (34%).",
+            "celula_origem": 5,
+            "usar_no_readme": false,
+            "usar_no_site": true
+        },
+        {
+            "arquivo": "Analise-de-Vendas-E-commerce/reports/figures/faturamento_mensal.png",
+            "descricao": "Análise da Sazonalidade demonstrando picos anuais e janela ótima ao varejo.",
+            "celula_origem": 8,
+            "usar_no_readme": false,
+            "usar_no_site": true
+        },
+        {
+            "arquivo": "Analise-de-Vendas-E-commerce/reports/figures/faturamento_por_categoria.png",
+            "descricao": "Análise do Motor Principal com o domínio contínuo da categoria de Eletrônicos (58%).",
+            "celula_origem": 10,
+            "usar_no_readme": false,
+            "usar_no_site": true
+        },
+        {
+            "arquivo": "Analise-de-Vendas-E-commerce/reports/figures/faturamento_por_estado.png",
+            "descricao": "Mapa Densidade Logística apontando correlação altíssima para o eixo Sueste do Brasil.",
+            "celula_origem": 12,
+            "usar_no_readme": true,
+            "usar_no_site": true
+        }
+    ],
+    "og_image": "Analise-de-Vendas-E-commerce/reports/figures/banner.svg",
+    "thumbnail": "Analise-de-Vendas-E-commerce/reports/figures/banner.svg",
+    "dominio_principal": "E-commerce & Logística",
+    "dominio_secundario": "Market Analysis",
+    "problema_uma_frase": "Como alinhar e direcionar estoques regionalizados eliminando perdas por marketing inexpressivos?",
+    "solucao_tecnica": "Pipeline detalhado de limpeza em Pandas para cruzamento temporal. Geração do mapa logístico com densidade do Seaborn com destaque direto para alocação expressa de centros logísticos no Sudeste.",
+    "decisoes_tecnicas": [
+        "Transformação temporal estrita dos dados via Pandas focada inteiramente em sazonalidade trimestral",
+        "Categorização do mix comercial isolando a força extrema da vertical 'Eletrônicos'",
+        "Utilização de grafos focados em distribuição Regional/Logística."
+    ],
+    "complexidade": "intermediário",
+    "tags": [
+        "python",
+        "pandas",
+        "ecommerce",
+        "businessintelligence",
+        "marketanalysis",
+        "datascience"
+    ],
+    "impacto": "Descoberta de que os setores MG/RJ/SP somados aos picos pré-fevereiro compõem quase metade (41%) de toda a margem estratégica da loja.",
+    "headline_github": "Insights de Vendas no Varejo via EDA Geográfica Temporal",
+    "headline_linkedin": "Como cruzar mix de produto com densidade logística ajuda a salvar 40% do faturamento.",
+    "libs_descritas": [
+        {
+            "nome": "Pandas",
+            "descricao_de_uso": "Limpeza intensa para categorização unificada de mix regional."
+        },
+        {
+            "nome": "Seaborn / Matplotlib",
+            "descricao_de_uso": "Responsáveis pelos mapas de calor estratégicos e tendências de longo fluxo."
+        }
+    ],
+    "celulas_destaque": [
+        3,
+        8,
+        12
+    ],
+    "cor_tematica": "#2d1a3d",
+    "diferencial_portfolio": "Insights de mercado acionáveis: sazonalidade, mix, geografia"
+}

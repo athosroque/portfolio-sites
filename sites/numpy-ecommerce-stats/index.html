@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Análise Estatística de Dados com NumPy</title>
+  <style>
+    :root {
+      --primary: #1a3a2a;
+      --text: #e2e8f0;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #10b981;
+    }
+    html.light {
+      --primary: #047857;
+      --text: #1e293b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --accent: #059669;
+    }
+    body {
+      margin: 0; font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.6; transition: all 0.3s ease;
+    }
+    header {
+      background: linear-gradient(135deg, var(--bg) 0%, var(--primary) 100%);
+      padding: 6rem 2rem; text-align: center;
+      border-bottom: 2px solid var(--accent);
+    }
+    h1 { font-size: 3rem; margin-bottom: 0.5rem; letter-spacing: -1px; }
+    .subtitle { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto 2rem; }
+    .btn {
+      display: inline-block; padding: 0.8rem 1.5rem;
+      background: var(--accent); color: #fff;
+      text-decoration: none; border-radius: 6px;
+      font-weight: bold; margin: 0.5rem; transition: transform 0.2s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .container { max-width: 1000px; margin: 0 auto; padding: 4rem 2rem; }
+    .card {
+      background: var(--card-bg); padding: 2rem; margin-bottom: 2rem;
+      border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border-left: 4px solid var(--accent);
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+    .metric { text-align: center; font-size: 2.5rem; font-weight: bold; color: var(--accent); }
+    .metric-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+    .tags span {
+      background: var(--primary); padding: 0.3rem 0.8rem;
+      border-radius: 20px; font-size: 0.8rem; margin-right: 0.5rem;
+      display: inline-block; margin-bottom: 0.5rem;
+    }
+    img { max-width: 100%; border-radius: 8px; margin: 1rem 0; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    footer { text-align: center; padding: 2rem; opacity: 0.7; font-size: 0.9rem; }
+    #theme-toggle { position: fixed; top: 1rem; right: 1rem; background: var(--card-bg); border: none; padding: 0.5rem; border-radius: 50%; cursor: pointer; color: var(--text); }
+  </style>
+</head>
+<body>
+  <button id="theme-toggle">🌓</button>
+  <header>
+    <h1>Análise Estatística de Dados com NumPy</h1>
+    <p class="subtitle">Como utilizar métricas comportamentais reais para prever e aumentar as vendas no e-commerce?</p>
+    <a href="#" class="btn">Ver no GitHub</a>
+    <a href="#" class="btn">Post no LinkedIn</a>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2>O Problema</h2>
+      <p>Falta de segmentação eficiente e excesso de campanhas genéricas gerando baixa conversão no e-commerce.</p>
+      <div class="tags">
+        <span>python</span><span>numpy</span><span>statistics</span><span>ecommerce</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Resultados & Impacto</h2>
+      <div class="grid">
+        <div>
+          <div class="metric">R$ <span class="counter" data-target="252">0</span>,70</div>
+          <div class="metric-label">Ticket Médio Identificado</div>
+        </div>
+        <div>
+          <div class="metric">0.<span class="counter" data-target="83">0</span></div>
+          <div class="metric-label">Correlação (Tempo/Visitas)</div>
+        </div>
+        <div>
+          <div class="metric"><span class="counter" data-target="15">0</span> min</div>
+          <div class="metric-label">Fricção Temporal (Recusa)</div>
+        </div>
+      </div>
+      <p style="margin-top: 1.5rem; text-align: center;"><em>Validação com fortíssima correlação apontando para nova tática de remarketing estatístico.</em></p>
+    </div>
+
+    <div class="card">
+      <h2>Decisões Técnicas Principais</h2>
+      <ul>
+        <li>Uso exclusivo do poder das bibliotecas C-based matemáticas (NumPy) para escalar a operação</li>
+        <li>Segmentação do "Cliente de Alto Valor" utilizando limites baseados em quartis descritivos</li>
+        <li>Abordagem quantitativa: drop acima de 15 min transformado em limite de retargeting</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Visualizações de Dados</h2>
+      <img src="assets/plot_1.png" alt="Matriz de Correlação">
+      <p><em>Matriz de correlação entre tempo no site e probabilidade de conversão.</em></p>
+      
+      <img src="assets/plot_0.png" alt="Distribuição de Valores">
+      <p><em>Distribuição dos valores de compra analisando métricas de ticket médio.</em></p>
+    </div>
+  </div>
+
+  <footer>
+    <p>Authored by Athos Roque · Gerado com sistema multi-agentes · projetoathos.com.br</p>
+  </footer>
+
+  <script>
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('light');
+    });
+
+    const counters = document.querySelectorAll('.counter');
+    const animateCounters = (entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const target = +entry.target.getAttribute('data-target');
+          let count = 0;
+          const updateCount = () => {
+            count += Math.ceil(target / 30);
+            if (count < target) {
+              entry.target.innerText = count;
+              requestAnimationFrame(updateCount);
+            } else {
+              entry.target.innerText = target;
+            }
+          };
+          updateCount();
+          observer.unobserve(entry.target);
+        }
+      });
+    };
+    const observer = new IntersectionObserver(animateCounters, { threshold: 0.5 });
+    counters.forEach(counter => observer.observe(counter));
+  </script>
+</body>
+</html>

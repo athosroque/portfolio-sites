@@ -1,0 +1,35 @@
+{
+    "usuario": {
+        "nome": "Athos Roque",
+        "github_username": "athosroque",
+        "linkedin_url": "https://linkedin.com/in/athosroque",
+        "dominio": "projetoathos.com.br"
+    },
+    "repositorios": {
+        "sites_repo": "portfolio-sites",
+        "sites_repo_url": "https://github.com/athosroque/portfolio-sites"
+    },
+    "cloudflare": {
+        "padrao_subdominio": "{slug}.projetoathos.com.br"
+    },
+    "tom": {
+        "linkedin": "profissional-humano",
+        "readme": "tecnico-direto",
+        "site": "visual-interativo"
+    },
+    "modelos": {
+        "primario": "gemini-3-pro",
+        "alternativo": "claude-sonnet-4-5"
+    },
+    "imagens": {
+        "extrair_do_notebook": true,
+        "gerar_og_image": true,
+        "formatos_aceitos": [
+            "png",
+            "svg",
+            "jpg"
+        ],
+        "largura_og": 1200,
+        "altura_og": 630
+    }
+}

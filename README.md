@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/dsa-python-miniprojeto3/og-image.svg" width="100%" alt="Banner E-commerce Analytics">
+  <img src="assets/numpy-ecommerce-stats/og-image.svg" width="100%" alt="Banner E-commerce Analytics">
 </div>
 
 # 🎯 Análise Estatística de Dados com NumPy
@@ -15,6 +15,7 @@
 ---
 
 ## 🎯 Explore o Projeto
+
 - **Notebook de Análise:** [Ecommerce_Analytics_NumPy.ipynb](notebooks/Ecommerce_Analytics_NumPy.ipynb)
 
 ---
@@ -32,7 +33,7 @@ O objetivo deste projeto foi transformar 500 registros de navegação brutos em 
 3.  **Análise de Perfis:** Segmentação de clientes com base em quartis para definir o avatar de "Alto Valor".
 4.  **Análise Multivariada:** Aplicação de Matrizes de Correlação e Covariância para validar as alavancas de ticket médio.
 
-## ✨  Resultados e Descobertas (Principais Insights)
+## ✨ Resultados e Descobertas (Principais Insights)
 
 >  **Hero Metric:** Ticket médio estabelecido em **R$ 252,70**, com forte correlação temporal indicando que o engajamento dita o volume final da cesta de compras.
 
@@ -42,13 +43,13 @@ O objetivo deste projeto foi transformar 500 registros de navegação brutos em 
 | :--- | :--- | :--- |
 | **Perfil Médio** | O cliente comum realiza **26 visitas/mês** e passa **33 min** navegando. | Definir essas métricas como "baseline" em campanhas de retenção. |
 | **Alto Valor** | Clientes segmentados no topo gastam mais e visitam a loja **33x por mês** (27% acima da média). | Criar um programa VIP focado nos usuários com >30 visitas/mês. |
-| **Correlação** | Forte ligação (**corr = 0.83**) entre o tempo de permanência e a quantidade de visitas. | Otimizar a jornada do usuário (UX) com recomendações de produtos na home para prolongar as sessões iniciais. |
+| **Correlação** | Forte ligação (**corr = 0.83**) entre o tempo de permanência e a quantid ade de visitas. | Otimizar a jornada do usuário (UX) com recomendações de produtos na home para prolongar as sessões iniciais. |
 | **Fricção** | Visitantes que não compram abandonam após **15 minutos**. | Disparar pop-ups de descontos temporários ou e-mails de remarketing para engajados quando a sessão passar dessa barreira temporal. |
 
 ## 📈 Visualizações Principais
 
 <div align="center">
-  <img src="assets/dsa-python-miniprojeto3/plot_0.png" width="80%" alt="Distribuição dos Valores de Compra">
+  <img src="assets/numpy-ecommerce-stats/plot_0.png" width="80%" alt="Distribuição dos Valores de Compra">
   <br>
   <em>Figura 1: Distribuição dos valores e análise de ticket médio (Média, Mediana e Desvio Padrão).</em>
 </div>
@@ -56,7 +57,7 @@ O objetivo deste projeto foi transformar 500 registros de navegação brutos em 
 <br>
 
 <div align="center">
-  <img src="assets/dsa-python-miniprojeto3/plot_1.png" width="80%" alt="Matriz de Correlação">
+  <img src="assets/numpy-ecommerce-stats/plot_1.png" width="80%" alt="Matriz de Correlação">
   <br>
   <em>Figura 2: Matriz de correlação validando o tempo no site como o principal preditor de conversão.</em>
 </div>

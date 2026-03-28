@@ -1,0 +1,129 @@
+{
+    "slug": "numpy-ecommerce-stats",
+    "tipo_projeto": "notebook-eda",
+    "titulo": "Análise Estatística de Dados com NumPy",
+    "linguagem": "python",
+    "objetivo": "Transformar registros de navegação brutos em uma bússola estratégica orientada a dados.",
+    "problema_resolvido": "Falta de segmentação eficiente e excesso de campanhas genéricas gerando baixa conversão no e-commerce.",
+    "bibliotecas": [
+        {
+            "nome": "numpy",
+            "alias": "np",
+            "celulas_de_uso": [
+                1,
+                5,
+                8
+            ]
+        },
+        {
+            "nome": "pandas",
+            "alias": "pd",
+            "celulas_de_uso": [
+                2,
+                4
+            ]
+        },
+        {
+            "nome": "matplotlib.pyplot",
+            "alias": "plt",
+            "celulas_de_uso": [
+                9,
+                10
+            ]
+        },
+        {
+            "nome": "seaborn",
+            "alias": "sns",
+            "celulas_de_uso": [
+                11,
+                12
+            ]
+        }
+    ],
+    "celulas_codigo": [
+        {
+            "ordem": 0,
+            "codigo": "import numpy as np",
+            "output_texto": "",
+            "tem_imagem": false
+        }
+    ],
+    "celulas_markdown": [
+        {
+            "ordem": 0,
+            "conteudo": "# Análise Estatística"
+        }
+    ],
+    "metricas": {
+        "ticket_medio_estabelecido": 252.70,
+        "visitas_medio_mes": 26,
+        "tempo_recusa_conversao_minutos": 15,
+        "correlacao_tempo_visitas": 0.83
+    },
+    "datasets": [
+        "ecommerce_synthetic_data.csv"
+    ],
+    "imagens_pendentes": [],
+    "versao": 1,
+    "data_processamento": "2026-03-28T20:00:00",
+    "imagens": [
+        {
+            "arquivo": "assets/numpy-ecommerce-stats/plot_0.png",
+            "descricao": "Distribuição dos valores de compra analisando métricas de ticket médio.",
+            "celula_origem": 5,
+            "usar_no_readme": false,
+            "usar_no_site": true
+        },
+        {
+            "arquivo": "assets/numpy-ecommerce-stats/plot_1.png",
+            "descricao": "Matriz de correlação entre tempo no site e probabilidade de conversão.",
+            "celula_origem": 8,
+            "usar_no_readme": true,
+            "usar_no_site": true
+        }
+    ],
+    "og_image": "assets/numpy-ecommerce-stats/og-image.svg",
+    "thumbnail": "assets/numpy-ecommerce-stats/thumbnail.png",
+    "dominio_principal": "Marketing Analytics",
+    "dominio_secundario": "Análise Estatística",
+    "problema_uma_frase": "Como utilizar métricas comportamentais reais para prever e aumentar as vendas no e-commerce?",
+    "solucao_tecnica": "Análise multivariada vetorial focada em matrizes de correlação e segmentação por percentis usando inteiramente o NumPy. Isolamento de features comportamentais de alto retorno sem utilizar complexidade abstraída.",
+    "decisoes_tecnicas": [
+        "Uso exclusivo das bibliotecas C-based matemáticas (NumPy) visando escalar a operação",
+        "Segmentação do 'Cliente de Alto Valor' utilizando limites baseados em quartis descritivos",
+        "Abordagem quantitativa em Fricção Temporal: drop >15 min transformado em limite de retargeting"
+    ],
+    "complexidade": "intermediário",
+    "tags": [
+        "python",
+        "numpy",
+        "statistics",
+        "ecommerce",
+        "analytics",
+        "datascience"
+    ],
+    "impacto": "Validação com 0.83 de correlação temporal apontando para nova tática de remarketing com sessões acima de 15 minutos em conversão nula.",
+    "headline_github": "Análise Estratégica E-commerce com Matemática Vetorial NumPy",
+    "headline_linkedin": "Transformei 500 registros de navegação brutos em bússola de remarketing estatístico.",
+    "libs_descritas": [
+        {
+            "nome": "NumPy",
+            "descricao_de_uso": "Engine estatística matriz base focada na velocidade vetorial C para perfis comportamentais."
+        },
+        {
+            "nome": "Pandas",
+            "descricao_de_uso": "Limpeza, estruturação e apoio tabular para as inferências da etapa inicial."
+        },
+        {
+            "nome": "Matplotlib / Seaborn",
+            "descricao_de_uso": "Visualização da distribuição analítica e comprovações da correlação cruzada."
+        }
+    ],
+    "celulas_destaque": [
+        2,
+        7,
+        10
+    ],
+    "cor_tematica": "#1a3a2a",
+    "diferencial_portfolio": "Vetorização numérica pura com NumPy sem abstrações"
+}
