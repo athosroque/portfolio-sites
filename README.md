@@ -2,7 +2,7 @@
 
 # 🌐 Portfolio Sites
 
-**Sites estáticos interativos dos projetos de Data Science e Full-Stack de Athos Roque**
+**Sites estáticos interativos dos projetos de Data Science e Full-Stack**
 
 [![Cloudflare Pages](https://img.shields.io/badge/Deploy-Cloudflare_Pages-F38020?style=flat-square&logo=cloudflare&logoColor=white)](#)
 [![projetoathos.com.br](https://img.shields.io/badge/Domínio-projetoathos.com.br-00D4AA?style=flat-square)](#)
