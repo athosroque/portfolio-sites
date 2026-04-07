@@ -1,230 +1,1480 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
-
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maximizando Receita E-commerce: Estratégia Baseada em Dados</title>
-    <style>
-        :root {
-            --primary: #2d1a3d;
-            --text: #e2e8f0;
-            --bg: #0f172a;
-            --card-bg: #1e1b29;
-            --accent: #9333ea;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Análise de Vendas E-commerce — Portfólio | Athos Roque</title>
+  <meta name="description" content="Análise exploratória profunda para identificar padrões de consumo, sazonalidade e oportunidades de expansão em R$ 5,16M de faturamento e-commerce." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        html.light {
-            --primary: #4c1d95;
-            --text: #1e293b;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --accent: #7e22ce;
-        }
+    :root {
+      --bg-base:       #050810;
+      --bg-surface:    #0a0d1a;
+      --bg-card:       #0e1220;
+      --bg-card-hover: #121828;
+      --border:        rgba(255,255,255,0.07);
+      --border-accent: rgba(56,189,248,0.3);
+      --border-green:  rgba(16,185,129,0.3);
+      --text-primary:  #f0f4ff;
+      --text-secondary:#8b9bbf;
+      --text-muted:    #4a5568;
+      --accent:        #38bdf8;
+      --accent-dim:    rgba(56,189,248,0.12);
+      --accent-mid:    rgba(56,189,248,0.25);
+      --cyan:          #06b6d4;
+      --green:         #10b981;
+      --green-dim:     rgba(16,185,129,0.12);
+      --purple:        #818cf8;
+      --orange:        #f59e0b;
+      --glow:          0 0 40px rgba(56,189,248,0.12);
+      --glow-green:    0 0 40px rgba(16,185,129,0.12);
+    }
 
-        body {
-            margin: 0;
-            font-family: 'Inter', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            transition: all 0.3s ease;
-        }
+    html { scroll-behavior: smooth; }
 
-        header {
-            background: linear-gradient(135deg, var(--bg) 0%, var(--primary) 100%);
-            padding: 6rem 2rem;
-            text-align: center;
-            border-bottom: 2px solid var(--accent);
-        }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-            letter-spacing: -1px;
-        }
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
 
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto 2rem;
-        }
+    /* ── GRID BACKGROUND ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(16,185,129,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,189,248,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        .btn {
-            display: inline-block;
-            padding: 0.8rem 1.5rem;
-            background: var(--accent);
-            color: #fff;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-            margin: 0.5rem;
-            transition: transform 0.2s;
-        }
+    /* ── LAYOUT ── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+    section { padding: 96px 0; }
 
-        .btn:hover {
-            transform: translateY(-2px);
-        }
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+    .section-label.green { color: var(--green); }
+    .section-label.green::before { background: var(--green); }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
+    h2.section-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 640px;
+      line-height: 1.7;
+    }
 
-        .card {
-            background: var(--card-bg);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid var(--accent);
-        }
+    /* ── ANIMATIONS ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s cubic-bezier(.16,1,.3,1), transform 0.65s cubic-bezier(.16,1,.3,1);
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      background: rgba(5,8,16,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    .nav-inner {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-left { display: flex; align-items: center; gap: 20px; }
+    .nav-back {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .nav-back:hover { color: var(--accent); }
+    .nav-divider {
+      width: 1px; height: 18px;
+      background: var(--border);
+    }
+    .nav-logo {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--green), var(--accent));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text-primary); }
 
-        .metric {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 64px 0 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-glow {
+      position: absolute;
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(16,185,129,0.07) 0%, rgba(56,189,248,0.06) 40%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -60%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-dim);
+      border: 1px solid var(--border-green);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--green);
+      letter-spacing: 0.04em;
+      margin-bottom: 28px;
+    }
+    .hero-eyebrow .dot {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.5; transform: scale(0.7); }
+    }
+    .hero-title {
+      font-size: clamp(40px, 7vw, 74px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 24px;
+    }
+    .hero-title .gradient {
+      background: linear-gradient(135deg, var(--green) 0%, var(--accent) 50%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-tagline {
+      font-size: clamp(16px, 2.2vw, 20px);
+      color: var(--text-secondary);
+      max-width: 580px;
+      line-height: 1.65;
+      margin-bottom: 40px;
+    }
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 48px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .badge:hover { border-color: var(--border-accent); box-shadow: var(--glow); }
+    .badge-icon { font-size: 15px; }
+    .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green);
+      color: #020710;
+      padding: 13px 26px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 13px 26px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s, transform 0.2s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--border-accent);
+      background: var(--accent-dim);
+      transform: translateY(-1px);
+    }
 
-        .metric-label {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    /* ── HERO METRICS ── */
+    .hero-metrics {
+      display: flex;
+      gap: 48px;
+      flex-wrap: wrap;
+      margin-top: 64px;
+      padding-top: 48px;
+      border-top: 1px solid var(--border);
+    }
+    .hero-metric-item {}
+    .hero-metric-value {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-metric-value span { color: var(--green); }
+    .hero-metric-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
 
-        .tags span {
-            background: var(--primary);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-right: 0.5rem;
-            display: inline-block;
-            margin-bottom: 0.5rem;
-        }
+    /* ── PROBLEMA ── */
+    #problema { background: var(--bg-surface); }
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+      margin-top: 56px;
+    }
+    .problem-narrative p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+    .problem-narrative p strong { color: var(--text-primary); }
+    .problem-question {
+      margin-top: 32px;
+      background: var(--green-dim);
+      border: 1px solid var(--border-green);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-size: 15px;
+      color: var(--text-secondary);
+      font-style: italic;
+      line-height: 1.7;
+    }
+    .problem-question strong { color: var(--green); font-style: normal; }
+    .pain-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .pain-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      transition: border-color 0.2s;
+    }
+    .pain-card:hover { border-color: var(--border-accent); }
+    .pain-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .pain-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .pain-card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
 
-        img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin: 1rem 0;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
+    /* ── PIPELINE ── */
+    #dados {}
+    .pipeline-wrap {
+      margin: 56px 0 64px;
+      overflow-x: auto;
+    }
+    .pipeline-svg-container {
+      min-width: 700px;
+    }
 
-        footer {
-            text-align: center;
-            padding: 2rem;
-            opacity: 0.7;
-            font-size: 0.9rem;
-        }
+    .data-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 48px;
+    }
+    .code-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .code-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .code-dots { display: flex; gap: 6px; }
+    .code-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #f87171; }
+    .dot-yellow { background: #fbbf24; }
+    .dot-green { background: var(--green); }
+    .code-card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .code-card-body {
+      padding: 20px;
+    }
+    pre, code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .token-kw  { color: #818cf8; }
+    .token-fn  { color: var(--accent); }
+    .token-str { color: var(--green); }
+    .token-cm  { color: var(--text-muted); font-style: italic; }
+    .token-num { color: var(--orange); }
+    .token-var { color: #e2e8f0; }
+    .schema-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .schema-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0 8px 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .schema-table td {
+      padding: 10px 8px 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      vertical-align: top;
+    }
+    .schema-table td:first-child { color: var(--accent); }
+    .schema-table td:last-child {
+      color: var(--text-muted);
+      font-size: 11px;
+      font-family: 'Inter', sans-serif;
+    }
 
-        #theme-toggle {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            background: var(--card-bg);
-            border: none;
-            padding: 0.5rem;
-            border-radius: 50%;
-            cursor: pointer;
-            color: var(--text);
-        }
-    </style>
+    /* ── ANÁLISES ── */
+    #analises { background: var(--bg-surface); }
+    .analyses-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 56px;
+    }
+    .analysis-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .analysis-card:hover {
+      border-color: var(--border-accent);
+      box-shadow: var(--glow);
+    }
+    .analysis-card-header {
+      padding: 24px 24px 0;
+    }
+    .analysis-number {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--green);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .analysis-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .analysis-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .analysis-code {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      padding: 16px 24px;
+    }
+    .analysis-code pre {
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .analysis-insight {
+      padding: 20px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .insight-metric {
+      flex-shrink: 0;
+      background: var(--green-dim);
+      border: 1px solid var(--border-green);
+      border-radius: 8px;
+      padding: 8px 14px;
+      text-align: center;
+    }
+    .insight-metric-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--green);
+      letter-spacing: -0.02em;
+      display: block;
+    }
+    .insight-metric-lbl {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .insight-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .insight-text strong { color: var(--text-primary); }
+    .insight-rec {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500;
+      margin-top: 8px;
+    }
+
+    /* ── STACK ── */
+    #stack {}
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 56px;
+    }
+    .stack-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 20px;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .stack-card:hover {
+      border-color: var(--border-green);
+      transform: translateY(-3px);
+      box-shadow: var(--glow-green);
+    }
+    .stack-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+    .stack-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    .stack-version {
+      font-size: 11px;
+      color: var(--green);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 8px;
+    }
+    .stack-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ── RESULTADOS ── */
+    #resultados { background: var(--bg-surface); }
+    .results-table-wrap {
+      margin-top: 56px;
+      overflow-x: auto;
+    }
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .results-table th {
+      text-align: left;
+      padding: 14px 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .results-table td {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    .results-table tr:last-child td { border-bottom: none; }
+    .results-table tr:hover td { background: rgba(255,255,255,0.015); }
+    .perspective-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .p-products { background: rgba(56,189,248,0.1); color: var(--accent); }
+    .p-seasonal { background: rgba(251,191,36,0.1); color: #fbbf24; }
+    .p-category { background: rgba(129,140,248,0.1); color: var(--purple); }
+    .p-geo      { background: rgba(16,185,129,0.1); color: var(--green); }
+    .td-finding { color: var(--text-secondary); }
+    .td-rec { color: var(--text-primary); font-size: 13px; }
+
+    /* ── PRÓXIMOS PASSOS ── */
+    .next-steps {
+      margin-top: 56px;
+    }
+    .next-steps-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 20px;
+    }
+    .next-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .next-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .next-chip:hover { border-color: var(--border-green); color: var(--green); }
+    .next-chip-icon { font-size: 16px; }
+
+    /* ── HOW TO RUN ── */
+    #reproduzir {}
+    .steps-list {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 700px;
+    }
+    .step-item {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--green-dim);
+      border: 1px solid var(--border-green);
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-body {}
+    .step-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .step-cmd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid rgba(16,185,129,0.15);
+      border-radius: 6px;
+      padding: 6px 12px;
+      display: inline-block;
+      margin-top: 6px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 48px 0;
+      background: var(--bg-surface);
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .footer-left {}
+    .footer-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .footer-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+    .footer-link {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .footer-link:hover { color: var(--accent); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .problem-grid { grid-template-columns: 1fr; }
+      .data-layout { grid-template-columns: 1fr; }
+      .analyses-grid { grid-template-columns: 1fr; }
+      .hero-metrics { gap: 32px; }
+      section { padding: 72px 0; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
-
 <body>
-    <button id="theme-toggle">🌓</button>
-    <header>
-        <h1>Maximizando Receita E-commerce: Estratégia Baseada em Dados</h1>
-        <p class="subtitle">Como alinhar e direcionar estoques regionalizados eliminando perdas por marketing
-            inexpressivos?</p>
-        <a href="#" class="btn">Ver no GitHub</a>
-        <a href="#" class="btn">Post no LinkedIn</a>
-    </header>
 
-    <div class="container">
-        <div class="card">
-            <h2>O Problema</h2>
-            <p>Gestão de estoque ineficiente e campanhas de marketing genéricas devido à completa falta de visibilidade
-                analítica em dados reais.</p>
-            <div class="tags">
-                <span>python</span><span>pandas</span><span>ecommerce</span><span>businessintelligence</span>
-            </div>
-        </div>
+<!-- ═══════════════════════════════════════════════════════════
+     NAV
+═══════════════════════════════════════════════════════════ -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="https://projetoathos.com.br" class="nav-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Portfólio
+      </a>
+      <div class="nav-divider"></div>
+      <a href="#hero" class="nav-logo">
+        <div class="nav-logo-icon">📊</div>
+        Análise de Vendas
+      </a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#problema">Problema</a></li>
+      <li><a href="#dados">Dados</a></li>
+      <li><a href="#analises">Análises</a></li>
+      <li><a href="#stack">Stack</a></li>
+      <li><a href="#resultados">Resultados</a></li>
+    </ul>
+  </div>
+</nav>
 
-        <div class="card">
-            <h2>Resultados & Impacto</h2>
-            <div class="grid">
-                <div>
-                    <div class="metric"><span class="counter" data-target="5">0</span>,16 M</div>
-                    <div class="metric-label">Faturamento Encontrado</div>
-                </div>
-                <div>
-                    <div class="metric"><span class="counter" data-target="41">0</span>%</div>
-                    <div class="metric-label">Concentração Sudeste</div>
-                </div>
-                <div>
-                    <div class="metric"><span class="counter" data-target="58">0</span>%</div>
-                    <div class="metric-label">Peso Eletrônicos</div>
-                </div>
-                <div>
-                    <div class="metric">R$ <span class="counter" data-target="3850">0</span></div>
-                    <div class="metric-label">Ticket Médio</div>
-                </div>
-            </div>
-            <p style="margin-top: 1.5rem; text-align: center;"><em>Descoberta crucial: MG/RJ/SP e os picos de
-                    pré-fevereiro compõem quase metade de toda a margem estratégica.</em></p>
-        </div>
-
-        <div class="card">
-            <h2>Insights Visuais Analíticos</h2>
-            <img src="assets/faturamento_por_estado.png" alt="Sazonalidade e Demanda">
-            <p><em>Mapa Densidade Logística apontando correlação altíssima para o eixo Sudeste do Brasil.</em></p>
-
-            <img src="assets/faturamento_mensal.png" alt="Matriz Estratégica">
-            <p><em>Análise da Sazonalidade demonstrando picos anuais e janela ótima ao varejo.</em></p>
-        </div>
+<!-- ═══════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="container">
+    <div class="reveal">
+      <div class="hero-eyebrow">
+        <div class="dot"></div>
+        Análise Exploratória de Dados · Python · E-commerce
+      </div>
     </div>
 
-    <footer>
-        <p>Authored by Athos Roque · Gerado com sistema multi-agentes · projetoathos.com.br</p>
-    </footer>
+    <h1 class="hero-title reveal reveal-delay-1">
+      Maximizando<br>
+      <span class="gradient">Receita E-commerce</span>
+    </h1>
 
-    <script>
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            document.documentElement.classList.toggle('light');
-        });
+    <p class="hero-tagline reveal reveal-delay-2">
+      De dados fragmentados a estratégia orientada a dados — quatro análises que revelam
+      o que vender, quando agir, onde focar e para onde expandir.
+    </p>
 
-        const counters = document.querySelectorAll('.counter');
-        const animateCounters = (entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const target = +entry.target.getAttribute('data-target');
-                    let count = 0;
-                    const updateCount = () => {
-                        count += Math.ceil(target / 40);
-                        if (count < target) {
-                            entry.target.innerText = count;
-                            requestAnimationFrame(updateCount);
-                        } else {
-                            entry.target.innerText = target;
-                        }
-                    };
-                    updateCount();
-                    observer.unobserve(entry.target);
-                }
-            });
-        };
-        const observer = new IntersectionObserver(animateCounters, { threshold: 0.5 });
-        counters.forEach(counter => observer.observe(counter));
-    </script>
+    <div class="hero-badges reveal reveal-delay-2">
+      <span class="badge"><span class="badge-icon">🐍</span> Python 3.13</span>
+      <span class="badge"><span class="badge-icon">🐼</span> Pandas 2.2</span>
+      <span class="badge"><span class="badge-icon">🔢</span> NumPy 2.1</span>
+      <span class="badge"><span class="badge-icon">📈</span> Matplotlib 3.10</span>
+      <span class="badge"><span class="badge-icon">🎨</span> Seaborn 0.13</span>
+      <span class="badge"><span class="badge-icon">📓</span> Jupyter</span>
+    </div>
+
+    <div class="hero-ctas reveal reveal-delay-3">
+      <a href="https://github.com/athosroque/Analise-de-Vendas-E-commerce/blob/main/notebooks/Analise_Vendas_Ecommerce.ipynb" class="btn-primary" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+        </svg>
+        Ver Notebook
+      </a>
+      <a href="https://github.com/athosroque/analise-de-vendas-e-commerce/blob/main/insights.md" class="btn-secondary" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Explorar Insights
+      </a>
+    </div>
+
+    <div class="hero-metrics reveal reveal-delay-4">
+      <div class="hero-metric-item">
+        <div class="hero-metric-value"><span>R$</span> 5,16M</div>
+        <div class="hero-metric-label">Faturamento total analisado</div>
+      </div>
+      <div class="hero-metric-item">
+        <div class="hero-metric-value"><span>R$</span> 3.850</div>
+        <div class="hero-metric-label">Ticket médio por pedido</div>
+      </div>
+      <div class="hero-metric-item">
+        <div class="hero-metric-value"><span>4</span></div>
+        <div class="hero-metric-label">Análises estratégicas</div>
+      </div>
+      <div class="hero-metric-item">
+        <div class="hero-metric-value"><span>500</span></div>
+        <div class="hero-metric-label">Transações processadas</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PROBLEMA
+═══════════════════════════════════════════════════════════ -->
+<section id="problema">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">01 · Contexto</div>
+      <h2 class="section-title">O Problema de Negócio</h2>
+      <p class="section-desc">
+        Uma loja em crescimento, mas sem visibilidade real sobre sua própria performance.
+      </p>
+    </div>
+
+    <div class="problem-grid">
+      <div class="reveal reveal-delay-1">
+        <div class="problem-narrative">
+          <p>
+            A loja acumulava histórico de vendas, mas os dados existiam de forma <strong>isolada e não processada</strong>.
+            A equipe de gestão tomava decisões de estoque por intuição, campanhas de marketing eram genéricas
+            e a estratégia de expansão geográfica não tinha fundamento analítico.
+          </p>
+          <p>
+            O resultado: <strong>rupturas de estoque em produtos de alta rotação</strong>, verba de marketing mal direcionada
+            e oportunidades logísticas não capturadas em regiões com demanda crescente.
+          </p>
+          <p>
+            O objetivo foi transformar o histórico de transações em <strong>diretrizes estratégicas acionáveis</strong>
+            respondendo às quatro perguntas fundamentais de qualquer operação de e-commerce.
+          </p>
+          <div class="problem-question">
+            <strong>O que vender?</strong> &nbsp;·&nbsp; <strong>Quando agir?</strong> &nbsp;·&nbsp;
+            <strong>Onde focar?</strong> &nbsp;·&nbsp; <strong>Para onde expandir?</strong>
+            <br><br>
+            Quatro perguntas. Quatro análises. Uma estratégia coesa.
+          </div>
+        </div>
+      </div>
+
+      <div class="pain-cards reveal reveal-delay-2">
+        <div class="pain-card">
+          <div class="pain-icon">📦</div>
+          <div>
+            <div class="pain-card-title">Estoque Ineficiente</div>
+            <div class="pain-card-desc">Sem dados de volume por produto, o reabastecimento era reativo. Produtos de alta rotação ficavam em ruptura enquanto itens de baixo giro ocupavam espaço.</div>
+          </div>
+        </div>
+        <div class="pain-card">
+          <div class="pain-icon">📣</div>
+          <div>
+            <div class="pain-card-title">Campanhas Genéricas</div>
+            <div class="pain-card-desc">Marketing sem inteligência de sazonalidade. Investimentos em tráfego pago eram uniformes ao longo do ano, ignorando picos de demanda identificáveis.</div>
+          </div>
+        </div>
+        <div class="pain-card">
+          <div class="pain-icon">🗺️</div>
+          <div>
+            <div class="pain-card-title">Expansão Sem Dados</div>
+            <div class="pain-card-desc">A empresa não sabia quais estados concentravam receita ou qual eixo geográfico justificava investimento em logística expressa e parcerias de frete.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     DADOS & METODOLOGIA
+═══════════════════════════════════════════════════════════ -->
+<section id="dados">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">02 · Metodologia</div>
+      <h2 class="section-title">Pipeline de Dados</h2>
+      <p class="section-desc">
+        Da geração controlada à engenharia de atributos — cada etapa construída para maximizar a qualidade analítica.
+      </p>
+    </div>
+
+    <!-- Pipeline SVG -->
+    <div class="pipeline-wrap reveal reveal-delay-1">
+      <div class="pipeline-svg-container">
+        <svg viewBox="0 0 920 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="rgba(16,185,129,0.6)"/>
+            </marker>
+          </defs>
+
+          <!-- Step 1: Geração -->
+          <rect x="0" y="20" width="155" height="60" rx="10" fill="#0e1220" stroke="rgba(16,185,129,0.35)" stroke-width="1.5"/>
+          <text x="77" y="47" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#10b981">Geração Sintética</text>
+          <text x="77" y="63" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4a5568">500 registros</text>
+
+          <!-- Arrow 1 -->
+          <line x1="157" y1="50" x2="184" y2="50" stroke="rgba(16,185,129,0.5)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <!-- Step 2: Limpeza -->
+          <rect x="186" y="20" width="155" height="60" rx="10" fill="#0e1220" stroke="rgba(56,189,248,0.3)" stroke-width="1.5"/>
+          <text x="263" y="47" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#38bdf8">Limpeza &amp; Tipos</text>
+          <text x="263" y="63" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4a5568">pandas dtypes</text>
+
+          <!-- Arrow 2 -->
+          <line x1="343" y1="50" x2="370" y2="50" stroke="rgba(16,185,129,0.5)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <!-- Step 3: Feature Eng -->
+          <rect x="372" y="20" width="175" height="60" rx="10" fill="#0e1220" stroke="rgba(129,140,248,0.3)" stroke-width="1.5"/>
+          <text x="459" y="47" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#818cf8">Feature Engineering</text>
+          <text x="459" y="63" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4a5568">Faturamento · Status_Entrega</text>
+
+          <!-- Arrow 3 -->
+          <line x1="549" y1="50" x2="576" y2="50" stroke="rgba(16,185,129,0.5)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <!-- Step 4: 4 Análises -->
+          <rect x="578" y="20" width="155" height="60" rx="10" fill="#0e1220" stroke="rgba(251,191,36,0.3)" stroke-width="1.5"/>
+          <text x="655" y="47" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#fbbf24">4 Análises</text>
+          <text x="655" y="63" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4a5568">groupby · agg · viz</text>
+
+          <!-- Arrow 4 -->
+          <line x1="735" y1="50" x2="762" y2="50" stroke="rgba(16,185,129,0.5)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <!-- Step 5: Insights -->
+          <rect x="764" y="20" width="155" height="60" rx="10" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.5)" stroke-width="1.5"/>
+          <text x="841" y="47" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#10b981">Insights Estratégicos</text>
+          <text x="841" y="63" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#4a5568">acionáveis · mensuráveis</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Schema + Feature Engineering -->
+    <div class="data-layout">
+      <!-- Dataset Schema -->
+      <div class="code-card reveal reveal-delay-2">
+        <div class="code-card-header">
+          <div class="code-dots">
+            <div class="code-dot dot-red"></div>
+            <div class="code-dot dot-yellow"></div>
+            <div class="code-dot dot-green"></div>
+          </div>
+          <span class="code-card-title">dataset_schema.py</span>
+        </div>
+        <div class="code-card-body">
+          <table class="schema-table">
+            <thead>
+              <tr>
+                <th>Coluna</th>
+                <th>Tipo</th>
+                <th>Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>ID_Pedido</td><td>int64</td><td>Identificador único do pedido</td></tr>
+              <tr><td>Data_Pedido</td><td>datetime64</td><td>Timestamp da transação</td></tr>
+              <tr><td>Nome_Produto</td><td>object</td><td>Nome do item vendido</td></tr>
+              <tr><td>Categoria</td><td>object</td><td>Segmento do produto</td></tr>
+              <tr><td>Preco_Unitario</td><td>float64</td><td>Preço por unidade (R$)</td></tr>
+              <tr><td>Quantidade</td><td>int64</td><td>Unidades vendidas (1–7)</td></tr>
+              <tr><td>ID_Cliente</td><td>int64</td><td>Identificador do comprador</td></tr>
+              <tr><td>Estado</td><td>object</td><td>UF de entrega (7 estados)</td></tr>
+              <tr><td style="color:var(--green)">Faturamento*</td><td>float64</td><td>Criada: Preço × Qtd</td></tr>
+              <tr><td style="color:var(--green)">Status_Entrega*</td><td>object</td><td>Criada: Rápida / Normal</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Feature Engineering -->
+      <div class="code-card reveal reveal-delay-3">
+        <div class="code-card-header">
+          <div class="code-dots">
+            <div class="code-dot dot-red"></div>
+            <div class="code-dot dot-yellow"></div>
+            <div class="code-dot dot-green"></div>
+          </div>
+          <span class="code-card-title">feature_engineering.py</span>
+        </div>
+        <div class="code-card-body">
+          <pre><code><span class="token-cm"># ── Conversão de tipo temporal</span>
+<span class="token-var">df</span>[<span class="token-str">'Data_Pedido'</span>] = <span class="token-fn">pd.to_datetime</span>(
+    <span class="token-var">df</span>[<span class="token-str">'Data_Pedido'</span>]
+)
+
+<span class="token-cm"># ── Métrica principal: receita por linha</span>
+<span class="token-var">df</span>[<span class="token-str">'Faturamento'</span>] = (
+    <span class="token-var">df</span>[<span class="token-str">'Preco_Unitario'</span>] * <span class="token-var">df</span>[<span class="token-str">'Quantidade'</span>]
+)
+
+<span class="token-cm"># ── Segmentação logística via lambda</span>
+<span class="token-var">sudeste</span> = [<span class="token-str">'MG'</span>, <span class="token-str">'RJ'</span>, <span class="token-str">'SP'</span>]
+<span class="token-var">df</span>[<span class="token-str">'Status_Entrega'</span>] = <span class="token-var">df</span>[<span class="token-str">'Estado'</span>].<span class="token-fn">apply</span>(
+    <span class="token-kw">lambda</span> <span class="token-var">x</span>: <span class="token-str">'Rápida'</span> <span class="token-kw">if</span> <span class="token-var">x</span> <span class="token-kw">in</span> <span class="token-var">sudeste</span>
+              <span class="token-kw">else</span> <span class="token-str">'Normal'</span>
+)
+
+<span class="token-cm"># ── Decomposição temporal para sazonalidade</span>
+<span class="token-var">df</span>[<span class="token-str">'Mes'</span>] = <span class="token-var">df</span>[<span class="token-str">'Data_Pedido'</span>].<span class="token-fn">dt.to_period</span>(<span class="token-str">'M'</span>)
+
+<span class="token-cm"># src/utils.py → design system consistente</span>
+<span class="token-fn">setup_style</span>()   <span class="token-cm"># rcParams + palette 'husl'</span>
+<span class="token-fn">save_fig</span>(<span class="token-var">fig</span>, <span class="token-str">'top_10_produtos'</span>, <span class="token-var">dpi</span>=<span class="token-num">150</span>)</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ANÁLISES
+═══════════════════════════════════════════════════════════ -->
+<section id="analises">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label green">03 · Análises</div>
+      <h2 class="section-title">As 4 Análises Estratégicas</h2>
+      <p class="section-desc">
+        Cada análise responde a uma pergunta de negócio com pandas, uma visualização e uma recomendação direta.
+      </p>
+    </div>
+
+    <div class="analyses-grid">
+
+      <!-- Análise 1: Mix de Produtos -->
+      <div class="analysis-card reveal reveal-delay-1">
+        <div class="analysis-card-header">
+          <div class="analysis-number">Análise 01</div>
+          <div class="analysis-title">Mix de Produtos</div>
+          <div class="analysis-subtitle">O que vender? · Volume por SKU</div>
+        </div>
+        <div class="analysis-code">
+          <pre><code><span class="token-cm"># Volume total por produto</span>
+<span class="token-var">ranking</span> = (
+  <span class="token-var">df</span>.<span class="token-fn">groupby</span>(<span class="token-str">'Nome_Produto'</span>)[<span class="token-str">'Quantidade'</span>]
+    .<span class="token-fn">sum</span>()
+    .<span class="token-fn">sort_values</span>(<span class="token-var">ascending</span>=<span class="token-kw">False</span>)
+    .<span class="token-fn">head</span>(<span class="token-num">10</span>)
+)
+<span class="token-cm"># Viz: barh + FuncFormatter + tight_layout</span></code></pre>
+        </div>
+        <div class="analysis-insight">
+          <div class="insight-metric">
+            <span class="insight-metric-val">34%</span>
+            <span class="insight-metric-lbl">Top 3 SKUs</span>
+          </div>
+          <div>
+            <div class="insight-text">
+              <strong>Mouse Sem Fio (60 un.) · SSD 1TB (58 un.) · Teclado Mecânico (55 un.)</strong>
+              concentram 34% de todo o volume de pedidos. Alta rotação com preço médio acessível — combinação ideal para bundling.
+            </div>
+            <div class="insight-rec">
+              ↳ Priorizar estoque e criar bundles de acessórios high-end
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Análise 2: Sazonalidade -->
+      <div class="analysis-card reveal reveal-delay-2">
+        <div class="analysis-card-header">
+          <div class="analysis-number">Análise 02</div>
+          <div class="analysis-title">Sazonalidade Mensal</div>
+          <div class="analysis-subtitle">Quando agir? · Decomposição temporal</div>
+        </div>
+        <div class="analysis-code">
+          <pre><code><span class="token-cm"># Decomposição por período mensal</span>
+<span class="token-var">df</span>[<span class="token-str">'Mes'</span>] = <span class="token-var">df</span>[<span class="token-str">'Data_Pedido'</span>].<span class="token-fn">dt.to_period</span>(<span class="token-str">'M'</span>)
+<span class="token-var">fat_mensal</span> = (
+  <span class="token-var">df</span>.<span class="token-fn">groupby</span>(<span class="token-str">'Mes'</span>)[<span class="token-str">'Faturamento'</span>].<span class="token-fn">sum</span>()
+)
+<span class="token-cm"># Viz: line + markers + axhline(média)</span></code></pre>
+        </div>
+        <div class="analysis-insight">
+          <div class="insight-metric">
+            <span class="insight-metric-val">+15%</span>
+            <span class="insight-metric-lbl">Fev. vs. média</span>
+          </div>
+          <div>
+            <div class="insight-text">
+              Fevereiro atinge <strong>R$ 1,63M</strong> — 15% acima da média mensal de R$ 1,5M.
+              Variação de 65% entre o melhor e pior mês indica sazonalidade clara e previsível.
+            </div>
+            <div class="insight-rec">
+              ↳ Antecipar marketing pago 15 dias antes do pico projetado
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Análise 3: Categorias -->
+      <div class="analysis-card reveal reveal-delay-3">
+        <div class="analysis-card-header">
+          <div class="analysis-number">Análise 03</div>
+          <div class="analysis-title">Receita por Categoria</div>
+          <div class="analysis-subtitle">Onde focar? · Concentração de faturamento</div>
+        </div>
+        <div class="analysis-code">
+          <pre><code><span class="token-cm"># Faturamento agregado por segmento</span>
+<span class="token-var">fat_cat</span> = (
+  <span class="token-var">df</span>.<span class="token-fn">groupby</span>(<span class="token-str">'Categoria'</span>)[<span class="token-str">'Faturamento'</span>]
+    .<span class="token-fn">sum</span>()
+    .<span class="token-fn">sort_values</span>(<span class="token-var">ascending</span>=<span class="token-kw">False</span>)
+)
+<span class="token-cm"># Viz: barh + FuncFormatter currency</span></code></pre>
+        </div>
+        <div class="analysis-insight">
+          <div class="insight-metric">
+            <span class="insight-metric-val">58%</span>
+            <span class="insight-metric-lbl">Eletrônicos</span>
+          </div>
+          <div>
+            <div class="insight-text">
+              <strong>Eletrônicos domina R$ 3,02M</strong> dos R$ 5,16M totais. Hardware contribui com 27%.
+              Acessórios (15%) têm alto volume mas baixo ticket — candidatos à estratégia de upsell.
+            </div>
+            <div class="insight-rec">
+              ↳ Expandir catálogo de Laptops/GPUs para maximizar margem
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Análise 4: Geográfica -->
+      <div class="analysis-card reveal reveal-delay-4">
+        <div class="analysis-card-header">
+          <div class="analysis-number">Análise 04</div>
+          <div class="analysis-title">Concentração Geográfica</div>
+          <div class="analysis-subtitle">Para onde expandir? · Heatmap estadual</div>
+        </div>
+        <div class="analysis-code">
+          <pre><code><span class="token-cm"># Receita por estado com visual de calor</span>
+<span class="token-var">fat_geo</span> = (
+  <span class="token-var">df</span>.<span class="token-fn">groupby</span>(<span class="token-str">'Estado'</span>)[<span class="token-str">'Faturamento'</span>]
+    .<span class="token-fn">sum</span>()
+    .<span class="token-fn">sort_values</span>(<span class="token-var">ascending</span>=<span class="token-kw">False</span>)
+)
+<span class="token-cm"># Viz: sns.barplot(palette='magma')</span></code></pre>
+        </div>
+        <div class="analysis-insight">
+          <div class="insight-metric">
+            <span class="insight-metric-val">41%</span>
+            <span class="insight-metric-lbl">Eixo Sudeste</span>
+          </div>
+          <div>
+            <div class="insight-text">
+              O eixo <strong>MG-RJ-SP</strong> concentra 41% da receita total. Bahia surge como 2ª força (R$ 820K)
+              com tração orgânica no Nordeste — indicativo de demanda reprimida por logística.
+            </div>
+            <div class="insight-rec">
+              ↳ Frete expresso no Sudeste + parceria de última milha no Nordeste
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     STACK
+═══════════════════════════════════════════════════════════ -->
+<section id="stack">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">04 · Stack</div>
+      <h2 class="section-title">Stack Técnica</h2>
+      <p class="section-desc">
+        Ferramentas escolhidas pela maturidade, ecossistema e adequação ao problema analítico.
+      </p>
+    </div>
+
+    <div class="stack-grid">
+      <div class="stack-card reveal reveal-delay-1">
+        <div class="stack-icon">🐍</div>
+        <div class="stack-name">Python</div>
+        <div class="stack-version">v3.13</div>
+        <div class="stack-desc">Runtime principal. Tipagem dinâmica e ecossistema científico maduro para análise de dados.</div>
+      </div>
+      <div class="stack-card reveal reveal-delay-1">
+        <div class="stack-icon">🐼</div>
+        <div class="stack-name">Pandas</div>
+        <div class="stack-version">v2.2.3</div>
+        <div class="stack-desc">Data wrangling, groupby, aggregations e manipulação de séries temporais com datetime64.</div>
+      </div>
+      <div class="stack-card reveal reveal-delay-2">
+        <div class="stack-icon">🔢</div>
+        <div class="stack-name">NumPy</div>
+        <div class="stack-version">v2.1.3</div>
+        <div class="stack-desc">Operações numéricas vetorizadas sobre arrays multidimensionais com broadcasting nativo.</div>
+      </div>
+      <div class="stack-card reveal reveal-delay-2">
+        <div class="stack-icon">📈</div>
+        <div class="stack-name">Matplotlib</div>
+        <div class="stack-version">v3.10.0</div>
+        <div class="stack-desc">Visualizações customizadas com rcParams, FuncFormatter de moeda e controle total de estilo.</div>
+      </div>
+      <div class="stack-card reveal reveal-delay-3">
+        <div class="stack-icon">🎨</div>
+        <div class="stack-name">Seaborn</div>
+        <div class="stack-version">v0.13.2</div>
+        <div class="stack-desc">Heatmaps com palette 'magma' para densidade geográfica e visualizações estatísticas de alto nível.</div>
+      </div>
+      <div class="stack-card reveal reveal-delay-3">
+        <div class="stack-icon">📓</div>
+        <div class="stack-name">Jupyter</div>
+        <div class="stack-version">Notebook</div>
+        <div class="stack-desc">Narrativa exploratória reproduzível. Código, visualização e análise textual no mesmo documento.</div>
+      </div>
+      <div class="stack-card reveal reveal-delay-4">
+        <div class="stack-icon">🔖</div>
+        <div class="stack-name">Watermark</div>
+        <div class="stack-version">rastreabilidade</div>
+        <div class="stack-desc">Registro automático das versões de todos os pacotes no notebook — reprodutibilidade garantida.</div>
+      </div>
+      <div class="stack-card reveal reveal-delay-4">
+        <div class="stack-icon">🛠️</div>
+        <div class="stack-name">src/utils.py</div>
+        <div class="stack-version">design system</div>
+        <div class="stack-desc">setup_style() + save_fig() — padronização visual e exportação DPI consistente em todo o projeto.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     RESULTADOS
+═══════════════════════════════════════════════════════════ -->
+<section id="resultados">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label green">05 · Resultados</div>
+      <h2 class="section-title">Resumo Executivo</h2>
+      <p class="section-desc">
+        Quatro perspectivas analíticas, quatro descobertas, quatro recomendações estratégicas acionáveis.
+      </p>
+    </div>
+
+    <div class="results-table-wrap reveal reveal-delay-1">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Perspectiva</th>
+            <th>Descoberta Principal</th>
+            <th>Recomendação Estratégica</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="perspective-badge p-products">📦 Produtos</span></td>
+            <td class="td-finding"><strong>Mouse Sem Fio</strong> e <strong>SSD 1TB</strong> lideram o volume. Top 3 SKUs = 34% dos pedidos.</td>
+            <td class="td-rec">Garantir estoque prioritário e criar bundles de acessórios para aumentar ticket médio.</td>
+          </tr>
+          <tr>
+            <td><span class="perspective-badge p-seasonal">📅 Sazonalidade</span></td>
+            <td class="td-finding">Pico de <strong>R$ 1,63M em Fevereiro</strong> — 15% acima da média. Variação mensal de 65%.</td>
+            <td class="td-rec">Escalar investimento em tráfego pago 15 dias antes dos picos de demanda projetados.</td>
+          </tr>
+          <tr>
+            <td><span class="perspective-badge p-category">🏷️ Categorias</span></td>
+            <td class="td-finding"><strong>Eletrônicos domina 58%</strong> do faturamento (R$ 3,02M). Hardware em segundo com 27%.</td>
+            <td class="td-rec">Expandir catálogo de Laptops e GPUs. Estratégia de upsell de acessórios em checkout.</td>
+          </tr>
+          <tr>
+            <td><span class="perspective-badge p-geo">🗺️ Geografia</span></td>
+            <td class="td-finding">Eixo <strong>MG-RJ-SP concentra 41%</strong> da receita. Bahia cresce organicamente (R$ 820K).</td>
+            <td class="td-rec">Frete expresso no Sudeste + parceria de última milha no Nordeste (BA/CE).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="next-steps reveal reveal-delay-2">
+      <div class="next-steps-title">Próximas Evoluções do Projeto</div>
+      <div class="next-chips">
+        <div class="next-chip">
+          <span class="next-chip-icon">👥</span>
+          Análise de Cohort de Clientes
+        </div>
+        <div class="next-chip">
+          <span class="next-chip-icon">🤖</span>
+          Previsão de Demanda com ML
+        </div>
+        <div class="next-chip">
+          <span class="next-chip-icon">📊</span>
+          Dashboard Interativo (Plotly/Dash)
+        </div>
+        <div class="next-chip">
+          <span class="next-chip-icon">🗺️</span>
+          Mapa Coroplético Geográfico
+        </div>
+        <div class="next-chip">
+          <span class="next-chip-icon">💰</span>
+          Análise RFM (Recência · Frequência · Valor)
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     COMO REPRODUZIR
+═══════════════════════════════════════════════════════════ -->
+<section id="reproduzir">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">06 · Reprodução</div>
+      <h2 class="section-title">Como Executar</h2>
+      <p class="section-desc">
+        Ambiente reproduzível em 3 passos — sem dados externos necessários.
+      </p>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item reveal reveal-delay-1">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Clone o repositório</div>
+          <div class="step-cmd">git clone https://github.com/athosroque/analise-de-vendas-e-commerce.git</div>
+        </div>
+      </div>
+      <div class="step-item reveal reveal-delay-2">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Instale as dependências</div>
+          <div class="step-cmd">pip install -r requirements.txt</div>
+        </div>
+      </div>
+      <div class="step-item reveal reveal-delay-3">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Execute o notebook</div>
+          <div class="step-cmd">jupyter notebook notebooks/Analise_Vendas_Ecommerce.ipynb</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-name">Athos Roque</div>
+        <div class="footer-sub">Análise de Vendas E-commerce · 2026</div>
+      </div>
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/athosroque" class="footer-link" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn
+        </a>
+        <a href="https://github.com/athosroque/analise-de-vendas-e-commerce" class="footer-link" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+          GitHub
+        </a>
+        <a href="https://projetoathos.com.br" class="footer-link" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Portfólio
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JS: Scroll Animations
+═══════════════════════════════════════════════════════════ -->
+<script>
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+        }
+      });
+    },
+    { threshold: 0.12 }
+  );
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
 </body>
-
 </html>
