@@ -3,410 +3,934 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spark Churn — Pipeline ML Databricks | Athos Roque</title>
-  <meta name="description" content="Pipeline de Machine Learning end-to-end para predição de churn em telecom: arquitetura Medallion, Spark ML, MLflow e Unity Catalog no Databricks. Modelo campeão GBT com AUC 0.82." />
-  <meta property="og:title" content="Spark Churn — Pipeline ML Databricks" />
-  <meta property="og:description" content="Predição de churn em escala com Medallion + Spark ML + MLflow + Unity Catalog. AUC 0.82." />
-  <meta property="og:type" content="website" />
+  <title>Previsão de churn em escala — pipeline de ML distribuído no Databricks | Athos Roque</title>
+  <meta name="description" content="Pipeline de previsão de churn em telecom: arquitetura Medallion, Spark MLlib, MLflow e Unity Catalog. Comparação entre Regressão Logística, Random Forest e Gradient Boosted Trees, com a Regressão Logística obtendo o melhor AUC (0,826)." />
+  <meta property="og:title" content="Previsão de churn em escala — pipeline de ML distribuído no Databricks" />
+  <meta property="og:description" content="Arquitetura Medallion, Spark MLlib, MLflow e Unity Catalog. Comparação de três classificadores supervisionados; a Regressão Logística obteve o melhor AUC (0,826)." />
+  <meta property="og:type" content="article" />
   <meta property="og:url" content="https://spark-churn.projetoathos.com.br" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg-base:    #050810;
-      --bg-surface: #0a0d1a;
-      --bg-card:    #0e1220;
-      --bg-card2:   #111827;
-      --text-primary:   #f0f4ff;
-      --text-secondary: #8b9bbf;
-      --text-muted:     #4a5568;
-      --accent-cyan:  #38bdf8;
-      --accent-green: #10b981;
-      --accent-purple:#818cf8;
-      --accent-orange:#f59e0b;
-      --accent-pink:  #f472b6;
-      --border:       rgba(255,255,255,0.07);
-      --border-accent:rgba(56,189,248,0.25);
-      --glow-cyan:    rgba(56,189,248,0.10);
-      --glow-green:   rgba(16,185,129,0.10);
-      --radius-card:  14px;
-      --radius-btn:   10px;
-      --transition:   0.22s cubic-bezier(.16,1,.3,1);
-      --max-w:        1100px;
+      --bg:          #ffffff;
+      --bg-soft:     #fafafa;
+      --ink:         rgba(20,20,20,0.92);
+      --ink-body:    rgba(20,20,20,0.80);
+      --ink-soft:    rgba(20,20,20,0.56);
+      --ink-faint:   rgba(20,20,20,0.40);
+      --line:        rgba(20,20,20,0.10);
+      --line-soft:   rgba(20,20,20,0.06);
+      --accent:      #1a8917;
+      --accent-ink:  #0f5c0d;
+      --bronze:      #a16207;
+      --silver:      #475569;
+      --gold:        #b45309;
+      --code-bg:     #f6f6f4;
+      --hl:          #fff7d6;
+      --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+      --sans:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono:  'JetBrains Mono', ui-monospace, monospace;
+      --read:  680px;
     }
 
-    html { scroll-behavior: smooth; }
-
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
     body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg-base);
-      color: var(--text-primary);
-      line-height: 1.6;
-      overflow-x: hidden;
+      background: var(--bg);
+      color: var(--ink-body);
+      font-family: var(--serif);
+      font-size: 20px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-base); }
-    ::-webkit-scrollbar-thumb { background: var(--accent-cyan); border-radius: 3px; opacity: 0.5; }
+    ::selection { background: var(--hl); }
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 6px; }
 
-    .grid-bg {
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(56,189,248,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(56,189,248,0.025) 1px, transparent 1px);
-      background-size: 60px 60px;
+    /* ── reading-progress bar ── */
+    #progress {
+      position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+      background: var(--accent); z-index: 200; transition: width 0.1s linear;
     }
 
-    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
-
-    /* ─── Nav ─── */
+    /* ── nav ── */
     nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      height: 64px;
-      background: rgba(5,8,16,0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: saturate(180%) blur(12px);
+      -webkit-backdrop-filter: saturate(180%) blur(12px);
+      border-bottom: 1px solid var(--line-soft);
     }
     .nav-inner {
-      max-width: var(--max-w); margin: 0 auto; padding: 0 24px;
-      height: 100%; display: flex; align-items: center; gap: 32px;
+      max-width: 1100px; margin: 0 auto; padding: 0 24px;
+      height: 58px; display: flex; align-items: center; gap: 18px;
     }
     .nav-logo {
       display: flex; align-items: center; gap: 10px;
-      text-decoration: none; color: var(--text-primary);
-      font-weight: 700; font-size: 15px; letter-spacing: -0.3px; flex-shrink: 0;
+      text-decoration: none; color: var(--ink);
+      font-family: var(--sans); font-weight: 700; font-size: 15px; letter-spacing: -0.2px;
     }
-    .nav-logo-icon {
-      width: 30px; height: 30px; border-radius: 8px;
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    .nav-logo .mono-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--ink); color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 14px; flex-shrink: 0;
+      font-family: var(--sans); font-weight: 700; font-size: 14px;
     }
-    .nav-links { display: flex; align-items: center; gap: 4px; flex: 1; }
-    .nav-links a {
-      color: var(--text-secondary); text-decoration: none;
-      font-size: 14px; font-weight: 500; padding: 6px 12px; border-radius: 8px;
-      transition: color var(--transition), background var(--transition);
+    .nav-spacer { flex: 1; }
+    .nav-link {
+      font-family: var(--sans); font-size: 14px; font-weight: 500;
+      color: var(--ink-soft); text-decoration: none;
+      transition: color 0.15s;
     }
-    .nav-links a:hover { color: var(--text-primary); background: rgba(255,255,255,0.06); }
+    .nav-link:hover { color: var(--ink); }
     .nav-cta {
-      margin-left: auto; flex-shrink: 0;
-      background: var(--accent-cyan); color: #050810;
-      text-decoration: none; font-size: 13px; font-weight: 700;
-      padding: 8px 18px; border-radius: var(--radius-btn);
-      transition: opacity var(--transition), transform var(--transition);
+      font-family: var(--sans); font-size: 13.5px; font-weight: 600;
+      color: #fff; background: var(--accent); text-decoration: none;
+      padding: 7px 16px; border-radius: 999px;
+      transition: background 0.15s, transform 0.15s;
     }
-    .nav-cta:hover { opacity: 0.85; transform: translateY(-1px); }
-    @media (max-width: 768px) { .nav-links { display: none; } }
+    .nav-cta:hover { background: var(--accent-ink); transform: translateY(-1px); }
+    @media (max-width: 640px) { .nav-link.hide-sm { display: none; } }
 
-    /* ─── Hero ─── */
-    #hero {
-      position: relative; padding: 150px 0 90px;
-      border-bottom: 1px solid var(--border);
-      background:
-        radial-gradient(60% 80% at 50% 0%, var(--glow-cyan), transparent 70%);
-    }
-    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
-    .pill {
-      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500;
-      padding: 5px 12px; border-radius: 999px;
-      border: 1px solid var(--border-accent); color: var(--accent-cyan);
-      background: var(--glow-cyan);
-    }
-    .hero-title {
-      font-size: clamp(34px, 6vw, 60px); font-weight: 800; letter-spacing: -1.5px;
-      line-height: 1.05; margin-bottom: 20px;
-    }
-    .hero-title .grad {
-      background: linear-gradient(120deg, var(--accent-cyan), var(--accent-purple) 60%, var(--accent-pink));
-      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .hero-sub { font-size: clamp(16px, 2.4vw, 20px); color: var(--text-secondary); max-width: 720px; margin-bottom: 34px; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      text-decoration: none; font-weight: 700; font-size: 14px;
-      padding: 12px 22px; border-radius: var(--radius-btn);
-      transition: transform var(--transition), opacity var(--transition), border-color var(--transition);
-    }
-    .btn-primary { background: var(--accent-cyan); color: #050810; }
-    .btn-primary:hover { transform: translateY(-2px); opacity: 0.9; }
-    .btn-ghost { background: transparent; color: var(--text-primary); border: 1px solid var(--border-accent); }
-    .btn-ghost:hover { transform: translateY(-2px); border-color: var(--accent-cyan); }
+    /* ── article scaffold ── */
+    article { max-width: var(--read); margin: 0 auto; padding: 0 24px; }
+    .wide   { max-width: 920px; margin: 0 auto; padding: 0 24px; }
 
-    /* ─── Stat strip ─── */
-    .stat-strip {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-      margin-top: 60px;
+    .kicker {
+      font-family: var(--sans); font-size: 13px; font-weight: 700;
+      letter-spacing: 1.6px; text-transform: uppercase;
+      color: var(--accent); margin: 60px 0 22px;
     }
-    .stat {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius-card); padding: 22px 20px; text-align: center;
+    h1.title {
+      font-family: var(--sans); font-weight: 800;
+      font-size: clamp(32px, 6vw, 50px); line-height: 1.12;
+      letter-spacing: -1.4px; color: var(--ink); margin-bottom: 22px;
     }
-    .stat-num {
-      font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 600;
-      color: var(--accent-green); letter-spacing: -1px;
+    .dek {
+      font-family: var(--serif); font-size: clamp(20px, 3vw, 24px);
+      line-height: 1.42; color: var(--ink-soft); font-weight: 400;
+      margin-bottom: 36px;
     }
-    .stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
-    @media (max-width: 720px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
 
-    /* ─── Sections ─── */
-    section { padding: 80px 0; border-bottom: 1px solid var(--border); }
-    .eyebrow {
-      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
-      letter-spacing: 2px; text-transform: uppercase; color: var(--accent-cyan); margin-bottom: 12px;
+    /* byline */
+    .byline { display: flex; align-items: center; gap: 14px; padding: 12px 0 0; }
+    .avatar {
+      width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #1a8917, #0f5c0d);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-family: var(--sans); font-weight: 700; font-size: 20px;
     }
-    .section-title { font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
-    .section-lead { font-size: 17px; color: var(--text-secondary); max-width: 720px; margin-bottom: 44px; }
+    .byline-meta { font-family: var(--sans); line-height: 1.4; }
+    .byline-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+    .byline-sub  { font-size: 14px; color: var(--ink-soft); }
+    .byline-sub .dot { margin: 0 6px; opacity: 0.5; }
 
-    /* ─── Medallion flow ─── */
-    .flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-    .layer {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius-card); padding: 24px; position: relative;
-      transition: transform var(--transition), border-color var(--transition);
-    }
-    .layer:hover { transform: translateY(-4px); border-color: var(--border-accent); }
-    .layer-tag {
-      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
-      padding: 3px 10px; border-radius: 999px; display: inline-block; margin-bottom: 12px;
-    }
-    .tag-bronze { background: rgba(245,158,11,0.12); color: var(--accent-orange); }
-    .tag-silver { background: rgba(139,155,191,0.14); color: var(--text-secondary); }
-    .tag-gold   { background: rgba(245,158,11,0.18); color: #fbbf24; }
-    .layer h3 { font-size: 18px; margin-bottom: 8px; }
-    .layer p { font-size: 14px; color: var(--text-secondary); }
-    @media (max-width: 720px) { .flow { grid-template-columns: 1fr; } }
+    .header-rule { border: none; border-top: 1px solid var(--line); margin: 34px 0 10px; }
 
-    /* ─── Cards grid ─── */
-    .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-    .card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius-card); padding: 26px;
-      transition: transform var(--transition), border-color var(--transition);
+    /* hero figure */
+    .hero-fig { margin: 40px 0 8px; }
+    .hero-stage {
+      border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+      background: var(--bg-soft);
     }
-    .card:hover { transform: translateY(-4px); border-color: var(--border-accent); }
-    .card-ic { font-size: 22px; margin-bottom: 14px; }
-    .card h3 { font-size: 17px; margin-bottom: 8px; }
-    .card p { font-size: 14px; color: var(--text-secondary); }
-    @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
-
-    /* ─── Stack chips ─── */
-    .stack { display: flex; flex-wrap: wrap; gap: 10px; }
-    .chip {
-      font-family: 'JetBrains Mono', monospace; font-size: 13px;
-      padding: 9px 16px; border-radius: var(--radius-btn);
-      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);
-      transition: border-color var(--transition), transform var(--transition);
+    .pipe-flow {
+      display: flex; align-items: stretch; gap: 0;
+      font-family: var(--mono); font-size: 12.5px;
+      overflow-x: auto;
     }
-    .chip:hover { border-color: var(--accent-cyan); transform: translateY(-2px); }
+    .pipe-node {
+      flex: 1 0 0; min-width: 110px; padding: 18px 14px; text-align: center;
+      border-right: 1px solid var(--line-soft);
+    }
+    .pipe-node:last-child { border-right: none; }
+    .pipe-node .pn-top { font-weight: 600; color: var(--ink); font-family: var(--sans); font-size: 13px; }
+    .pipe-node .pn-bot { color: var(--ink-soft); font-size: 11.5px; margin-top: 4px; }
+    .pipe-node .pn-ic  { font-size: 18px; display: block; margin-bottom: 8px; }
+    figcaption {
+      font-family: var(--sans); font-size: 13.5px; color: var(--ink-faint);
+      text-align: center; margin-top: 12px;
+    }
 
-    /* ─── Table ─── */
-    .tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-card); }
-    table { width: 100%; border-collapse: collapse; min-width: 520px; }
-    th, td { text-align: left; padding: 14px 18px; font-size: 14px; border-bottom: 1px solid var(--border); }
-    th { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent-cyan); }
+    /* body typography */
+    article p { margin: 0 0 28px; }
+    .lead-p::first-letter {
+      font-family: var(--sans); font-weight: 800;
+      float: left; font-size: 76px; line-height: 0.78;
+      padding: 6px 10px 0 0; color: var(--ink);
+    }
+    article h2 {
+      font-family: var(--sans); font-weight: 800;
+      font-size: clamp(25px, 4vw, 32px); line-height: 1.2; letter-spacing: -0.8px;
+      color: var(--ink); margin: 54px 0 12px;
+    }
+    article h3 {
+      font-family: var(--sans); font-weight: 700;
+      font-size: 21px; letter-spacing: -0.3px; color: var(--ink);
+      margin: 38px 0 8px;
+    }
+    .stage-label {
+      font-family: var(--mono); font-size: 12.5px; font-weight: 600;
+      letter-spacing: 0.5px; color: var(--accent); margin: 56px 0 -2px;
+    }
+    article a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+    article a:hover { color: var(--accent); }
+    strong { color: var(--ink); font-weight: 600; }
+    em { font-style: italic; }
+
+    code.inline {
+      font-family: var(--mono); font-size: 0.82em;
+      background: var(--code-bg); border: 1px solid var(--line-soft);
+      padding: 1px 6px; border-radius: 5px; color: #b91c1c; white-space: nowrap;
+    }
+
+    /* divider */
+    .sep { text-align: center; margin: 48px 0; color: var(--ink-faint); letter-spacing: 8px; font-size: 14px; }
+
+    /* blockquote / pull quote */
+    blockquote {
+      margin: 36px 0; padding: 2px 0 2px 26px;
+      border-left: 3px solid var(--ink);
+      font-style: italic; font-size: 24px; line-height: 1.45; color: var(--ink);
+    }
+    blockquote.small { font-size: 20px; }
+
+    /* callout */
+    .callout {
+      margin: 32px 0; padding: 20px 24px;
+      background: var(--bg-soft); border: 1px solid var(--line);
+      border-left: 3px solid var(--accent); border-radius: 8px;
+      font-size: 17px; line-height: 1.6;
+    }
+    .callout .ct-tag {
+      font-family: var(--sans); font-weight: 700; font-size: 12px; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 8px;
+    }
+    .callout p { margin: 0 0 12px; }
+    .callout p:last-child { margin: 0; }
+
+    /* code block */
+    .codeblock {
+      margin: 30px 0; background: #0d1117; border-radius: 10px; overflow: hidden;
+      border: 1px solid #1f2630;
+    }
+    .codeblock .cb-bar {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 16px; border-bottom: 1px solid #1f2630; background: #0a0e14;
+    }
+    .codeblock .cb-bar .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .cb-r { background: #ff5f56; } .cb-y { background: #ffbd2e; } .cb-g { background: #27c93f; }
+    .cb-name { font-family: var(--mono); font-size: 12px; color: #8b98a8; margin-left: 8px; }
+    .codeblock pre {
+      margin: 0; padding: 18px 20px; overflow-x: auto;
+      font-family: var(--mono); font-size: 13.5px; line-height: 1.75; color: #c9d4e3;
+    }
+    .codeblock .c { color: #5c6b7a; font-style: italic; }
+    .codeblock .k { color: #ff7b72; }
+    .codeblock .s { color: #a5d6a3; }
+    .codeblock .f { color: #79c0ff; }
+    .codeblock .n { color: #f0883e; }
+
+    /* tables */
+    .tbl-wrap { margin: 32px 0; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: 15px; }
+    thead th {
+      text-align: left; padding: 12px 14px; border-bottom: 2px solid var(--ink);
+      font-size: 12.5px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--ink-soft);
+    }
+    tbody td { padding: 12px 14px; border-bottom: 1px solid var(--line-soft); color: var(--ink-body); vertical-align: top; }
     tbody tr:last-child td { border-bottom: none; }
-    td code { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent-purple); }
-    .champ { color: var(--accent-green); font-weight: 600; }
-
-    /* ─── Code block ─── */
-    .code {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius-card); padding: 22px 24px; overflow-x: auto;
-      font-family: 'JetBrains Mono', monospace; font-size: 13.5px; color: var(--text-secondary);
-      line-height: 1.9;
+    td .num { font-family: var(--mono); font-size: 14px; }
+    tr.champ td { background: rgba(26,137,23,0.06); }
+    .champ-badge {
+      font-family: var(--sans); font-size: 11.5px; font-weight: 700;
+      color: var(--accent); background: rgba(26,137,23,0.12);
+      padding: 2px 9px; border-radius: 999px; white-space: nowrap;
     }
-    .code .c { color: var(--text-muted); }
-    .code .n { color: var(--accent-cyan); }
+    .bar { display: inline-block; height: 7px; border-radius: 4px; background: var(--accent); vertical-align: middle; margin-left: 8px; }
 
-    /* ─── Footer ─── */
-    footer { padding: 50px 0; text-align: center; }
-    footer p { color: var(--text-secondary); font-size: 14px; }
-    footer a { color: var(--accent-cyan); text-decoration: none; }
+    /* medallion cards */
+    .medallion { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 32px 0; }
+    .med-card { border: 1px solid var(--line); border-radius: 10px; padding: 20px; background: var(--bg); }
+    .med-tag {
+      font-family: var(--mono); font-size: 12px; font-weight: 600;
+      padding: 3px 11px; border-radius: 999px; display: inline-block; margin-bottom: 12px;
+    }
+    .med-bronze { color: var(--bronze); background: rgba(161,98,7,0.10); }
+    .med-silver { color: var(--silver); background: rgba(71,85,105,0.10); }
+    .med-gold   { color: var(--gold);   background: rgba(180,83,9,0.10); }
+    .med-card h4 { font-family: var(--sans); font-size: 16px; color: var(--ink); margin-bottom: 6px; }
+    .med-card p  { font-size: 14.5px; line-height: 1.5; color: var(--ink-soft); margin: 0; font-family: var(--sans); }
+    @media (max-width: 640px) { .medallion { grid-template-columns: 1fr; } }
+
+    /* model cards */
+    .model-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 30px 0; }
+    .model-card { border: 1px solid var(--line); border-radius: 10px; padding: 22px 24px; }
+    .model-card .mc-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .model-card h3 { font-family: var(--sans); font-size: 19px; margin: 0; color: var(--ink); }
+    .model-card .mc-type {
+      font-family: var(--mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.3px;
+      color: var(--ink-soft); background: var(--bg-soft); border: 1px solid var(--line);
+      padding: 2px 9px; border-radius: 999px;
+    }
+    .model-card p { font-size: 16px; line-height: 1.6; margin: 0 0 10px; }
+    .model-card .mc-params {
+      font-family: var(--mono); font-size: 12.5px; color: var(--ink-soft);
+      background: var(--code-bg); border: 1px solid var(--line-soft);
+      padding: 8px 12px; border-radius: 6px; overflow-x: auto;
+    }
+
+    /* stat strip */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 36px 0; }
+    .stat { text-align: center; padding: 8px; }
+    .stat .s-num { font-family: var(--sans); font-weight: 800; font-size: clamp(26px, 5vw, 34px); letter-spacing: -1px; color: var(--ink); }
+    .stat .s-lab { font-family: var(--sans); font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+    @media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+    /* insight rows */
+    .insights { margin: 30px 0; }
+    .ins-row { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line-soft); align-items: flex-start; }
+    .ins-row:last-child { border-bottom: none; }
+    .ins-stat { font-family: var(--mono); font-weight: 600; font-size: 20px; color: var(--accent-ink); flex: 0 0 88px; }
+    .ins-txt { font-family: var(--sans); font-size: 15.5px; line-height: 1.5; }
+    .ins-txt b { color: var(--ink); }
+
+    /* takeaways */
+    .takeaways {
+      margin: 44px 0; padding: 28px 30px; border-radius: 12px;
+      background: var(--bg-soft); border: 1px solid var(--line);
+    }
+    .takeaways h3 { font-family: var(--sans); font-size: 18px; margin: 0 0 14px; color: var(--ink); }
+    .takeaways ul { list-style: none; margin: 0; padding: 0; }
+    .takeaways li {
+      font-family: var(--sans); font-size: 15.5px; line-height: 1.5;
+      padding-left: 28px; position: relative; margin-bottom: 12px; color: var(--ink-body);
+    }
+    .takeaways li:last-child { margin-bottom: 0; }
+    .takeaways li::before {
+      content: "✓"; position: absolute; left: 0; top: 0;
+      color: var(--accent); font-weight: 700;
+    }
+
+    /* tags */
+    .tags { display: flex; flex-wrap: wrap; gap: 9px; margin: 44px 0 0; }
+    .tag {
+      font-family: var(--sans); font-size: 13.5px; color: var(--ink-soft);
+      background: var(--bg-soft); border: 1px solid var(--line);
+      padding: 6px 14px; border-radius: 999px; text-decoration: none;
+    }
+    .tag:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+    /* end byline / footer */
+    .end-rule { border: none; border-top: 1px solid var(--line); margin: 48px 0 36px; }
+    .end-card { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 40px; }
+    .end-card .e-meta { font-family: var(--sans); }
+    .end-card .e-name { font-size: 17px; font-weight: 700; color: var(--ink); }
+    .end-card .e-bio  { font-size: 15px; color: var(--ink-soft); line-height: 1.55; margin-top: 4px; }
+    .end-card .e-links { margin-top: 10px; display: flex; gap: 14px; }
+    .end-card .e-links a { font-size: 14px; font-weight: 600; }
+
+    footer {
+      border-top: 1px solid var(--line-soft); background: var(--bg-soft);
+      padding: 40px 24px; text-align: center;
+    }
+    footer p { font-family: var(--sans); font-size: 14px; color: var(--ink-soft); margin: 0; }
+    footer a { color: var(--accent-ink); text-decoration: none; font-weight: 600; }
     footer a:hover { text-decoration: underline; }
 
-    .draft-note {
-      margin-top: 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
-      color: var(--text-muted);
+    @media (max-width: 640px) {
+      body { font-size: 18px; }
+      .lead-p::first-letter { font-size: 60px; }
     }
   </style>
 </head>
 <body>
-  <div class="grid-bg"></div>
+  <div id="progress"></div>
 
   <nav>
     <div class="nav-inner">
       <a class="nav-logo" href="https://projetoathos.com.br">
-        <span class="nav-logo-icon">⚡</span> Athos Roque
+        <span class="mono-avatar">A</span> Athos Roque
       </a>
-      <div class="nav-links">
-        <a href="#arquitetura">Arquitetura</a>
-        <a href="#stack">Stack técnica</a>
-        <a href="#destaques">Destaques de engenharia</a>
-        <a href="#rodar">Como rodar</a>
-      </div>
+      <span class="nav-spacer"></span>
+      <a class="nav-link hide-sm" href="#supervisionado">Teoria</a>
+      <a class="nav-link hide-sm" href="#modelos">Modelos</a>
+      <a class="nav-link hide-sm" href="#resultados">Resultados</a>
       <a class="nav-cta" href="https://github.com/athosroque/Homelab/tree/master/spark-churn" target="_blank" rel="noopener">Ver no GitHub</a>
     </div>
   </nav>
 
-  <header id="hero">
-    <div class="container">
-      <div class="badge-row">
-        <span class="pill">Databricks Serverless</span>
-        <span class="pill">PySpark · MLflow</span>
-        <span class="pill">Unity Catalog</span>
+  <article>
+    <p class="kicker">Machine Learning · Engenharia de Dados</p>
+    <h1 class="title">Previsão de churn em escala: um pipeline de ML distribuído</h1>
+    <p class="dek">
+      Da pergunta de negócio ao score de risco por cliente: aprendizado supervisionado, comparação
+      de três algoritmos de classificação e arquitetura de dados em camadas sobre Spark, Databricks
+      e MLflow.
+    </p>
+
+    <div class="byline">
+      <div class="avatar">A</div>
+      <div class="byline-meta">
+        <div class="byline-name">Athos Roque</div>
+        <div class="byline-sub">
+          11 min de leitura <span class="dot">·</span> Brasília, DF <span class="dot">·</span> jun. 2026
+        </div>
       </div>
-      <h1 class="hero-title">Spark Churn —<br><span class="grad">Pipeline ML de ponta a ponta</span></h1>
-      <p class="hero-sub">
-        Predição de cancelamento (churn) de clientes de telecom em escala, do dado bruto
-        à inferência em batch com score de risco por cliente. Arquitetura Medallion sobre
-        Delta Lake, treino versionado no MLflow e promoção governada no Unity Catalog.
+    </div>
+
+    <hr class="header-rule" />
+
+    <figure class="hero-fig">
+      <div class="hero-stage">
+        <div class="pipe-flow">
+          <div class="pipe-node"><span class="pn-ic">📄</span><span class="pn-top">CSV</span><span class="pn-bot">Telco · 7.043 linhas</span></div>
+          <div class="pipe-node"><span class="pn-ic">🥉</span><span class="pn-top">Bronze</span><span class="pn-bot">dado bruto</span></div>
+          <div class="pipe-node"><span class="pn-ic">🥈</span><span class="pn-top">Prata</span><span class="pn-bot">limpo &amp; tipado</span></div>
+          <div class="pipe-node"><span class="pn-ic">🥇</span><span class="pn-top">Ouro</span><span class="pn-bot">features ML</span></div>
+          <div class="pipe-node"><span class="pn-ic">🤖</span><span class="pn-top">MLflow</span><span class="pn-bot">3 modelos</span></div>
+          <div class="pipe-node"><span class="pn-ic">🎯</span><span class="pn-top">Score</span><span class="pn-bot">risco/cliente</span></div>
+        </div>
+      </div>
+      <figcaption>Fluxo de ponta a ponta: do CSV bruto à inferência em batch no Databricks.</figcaption>
+    </figure>
+
+    <p class="lead-p">
+      Operadoras de telecom perdem clientes continuamente para cancelamento — o <strong>churn</strong>.
+      O custo é relevante: adquirir um cliente novo é várias vezes mais caro do que reter um
+      existente. A pergunta de negócio do projeto é:
+    </p>
+
+    <blockquote>“Quais clientes têm maior probabilidade de cancelar nos próximos meses — e por quê?”</blockquote>
+
+    <p>
+      Responder exige mais do que treinar um modelo: exige um <strong>pipeline de ponta a ponta</strong>
+      que lide com dado sujo, escala distribuída, rastreabilidade de experimentos e promoção governada
+      para produção. Este artigo percorre cada etapa do pipeline — construído sobre Apache Spark,
+      Databricks, Delta Lake, MLflow e Unity Catalog — com foco nos <strong>algoritmos</strong>, na
+      teoria de cada escolha e nas decisões que sustentam o resultado.
+    </p>
+
+    <div class="stats">
+      <div class="stat"><div class="s-num">7.043</div><div class="s-lab">clientes no dataset</div></div>
+      <div class="stat"><div class="s-num">~26%</div><div class="s-lab">taxa de churn (classe rara)</div></div>
+      <div class="stat"><div class="s-num">3</div><div class="s-lab">algoritmos comparados</div></div>
+      <div class="stat"><div class="s-num">0.826</div><div class="s-lab">AUC-ROC do melhor modelo</div></div>
+    </div>
+
+    <!-- ══════════════ SUPERVISIONADO ══════════════ -->
+    <h2 id="supervisionado">Supervisionado ou não supervisionado?</h2>
+    <p>
+      A primeira decisão de modelagem é o tipo de aprendizado, porque ela determina os
+      <strong>algoritmos disponíveis</strong>, as métricas válidas e o formato do dado.
+    </p>
+    <p>
+      No <strong>aprendizado não supervisionado</strong>, os dados não têm rótulos e o algoritmo
+      precisa descobrir estrutura por conta própria — agrupar clientes parecidos (<em>clustering</em>,
+      como o <code class="inline">k-means</code>), reduzir dimensionalidade (PCA) ou detectar
+      anomalias. Não há rótulo a prever, apenas padrões a identificar.
+    </p>
+    <p>
+      No <strong>aprendizado supervisionado</strong>, cada exemplo vem com um <em>rótulo</em>, e o
+      algoritmo aprende a função que mapeia as variáveis de entrada para esse rótulo, generalizando
+      para casos futuros. É o caso deste projeto: o dataset tem a coluna <code class="inline">Churn</code>
+      indicando, para cada cliente histórico, se ele cancelou ou não. Com rótulo disponível, o
+      problema é <strong>supervisionado</strong>.
+    </p>
+    <p>
+      Como o rótulo assume apenas dois valores — cancelou (<code class="inline">1</code>) ou
+      permaneceu (<code class="inline">0</code>) — trata-se de <strong>classificação binária</strong>.
+      O rótulo discreto distingue o problema de uma <em>regressão</em> (prever um valor contínuo) e
+      habilita métricas como AUC-ROC e F1.
+    </p>
+
+    <div class="callout">
+      <span class="ct-tag">Nota de método</span>
+      <p>
+        A segmentação de clientes na análise exploratória (por contrato, por tempo de casa) é
+        <strong>descritiva</strong>, guiada por regras de negócio — não são <em>clusters</em>
+        aprendidos por um algoritmo. Uma evolução do projeto seria rodar um
+        <code class="inline">k-means</code> para descobrir segmentos latentes de risco, como
+        complemento ao classificador.
       </p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="https://github.com/athosroque/Homelab/tree/master/spark-churn" target="_blank" rel="noopener">📦 Repositório</a>
-        <a class="btn btn-ghost" href="#arquitetura">Explorar arquitetura ↓</a>
-      </div>
+    </div>
 
-      <div class="stat-strip">
-        <div class="stat"><div class="stat-num">0.82</div><div class="stat-label">AUC-ROC (campeão)</div></div>
-        <div class="stat"><div class="stat-num">7.043</div><div class="stat-label">clientes no dataset</div></div>
-        <div class="stat"><div class="stat-num">3</div><div class="stat-label">camadas Medallion</div></div>
-        <div class="stat"><div class="stat-num">6</div><div class="stat-label">notebooks no pipeline</div></div>
+    <div class="sep">• • •</div>
+
+    <!-- ══════════════ MEDALLION ══════════════ -->
+    <h2 id="arquitetura">Arquitetura Medallion</h2>
+    <p>
+      A qualidade do modelo é limitada pela qualidade do dado, e dado de produção chega sujo. A
+      arquitetura <strong>Medallion</strong> organiza o fluxo em três camadas sobre o
+      <strong>Delta Lake</strong>, cada uma com uma responsabilidade definida. Isso permite
+      reprocessar, auditar e reutilizar o dado sem reescrever o pipeline inteiro.
+    </p>
+
+    <div class="medallion">
+      <div class="med-card">
+        <span class="med-tag med-bronze">🥉 Bronze</span>
+        <h4>Dado bruto, intocado</h4>
+        <p>O CSV como chegou, sem filtro nem transformação semântica. Garante rastreabilidade e permite reprocessar do zero.</p>
+      </div>
+      <div class="med-card">
+        <span class="med-tag med-silver">🥈 Prata</span>
+        <h4>Limpo e confiável</h4>
+        <p>Nulos tratados, tipos corrigidos, target binarizado, regras de qualidade aplicadas. Pronto para análise e reutilizável por qualquer caso de uso.</p>
+      </div>
+      <div class="med-card">
+        <span class="med-tag med-gold">🥇 Ouro</span>
+        <h4>Features para ML</h4>
+        <p>Variáveis derivadas e codificadas no formato que o modelo consome. É a única camada acoplada a este caso de uso.</p>
       </div>
     </div>
-  </header>
 
-  <!-- ─── Arquitetura ─── -->
-  <section id="arquitetura">
-    <div class="container">
-      <p class="eyebrow">Arquitetura</p>
-      <h2 class="section-title">Medallion sobre Delta Lake</h2>
-      <p class="section-lead">
-        Separação rigorosa de responsabilidades: Bronze nunca recebe transformação semântica,
-        Silver nunca carrega features de um modelo específico, e Gold é a única camada acoplada
-        ao caso de uso — pronta para reúso por outros modelos.
+    <p>
+      Delta Lake em vez de Parquet puro porque traz <strong>transações ACID</strong>, versionamento
+      e <em>time travel</em> — é possível consultar o estado da tabela em qualquer versão anterior.
+      Em um pipeline reexecutado dezenas de vezes, isso garante consistência e reprodutibilidade.
+    </p>
+
+    <div class="sep">• • •</div>
+
+    <!-- ══════════════ BRONZE ══════════════ -->
+    <p class="stage-label">ETAPA 01 — INGESTÃO</p>
+    <h2>Bronze: ingestão sem transformação</h2>
+    <p>
+      A camada Bronze lê a tabela-fonte registrada no Unity Catalog e a persiste em Delta
+      <strong>sem transformação</strong>, apenas com casting mínimo de tipos. A regra: nada que
+      altere o significado do dado entra aqui. Com o Bronze imutável, um bug na limpeza pode ser
+      corrigido reprocessando, sem perda de dado.
+    </p>
+
+    <div class="codeblock">
+      <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">01_ingestao_bronze.py</span></div>
+<pre><span class="c"># Lê a fonte pelo nome no Unity Catalog e persiste em Delta, sem tocar no conteúdo</span>
+df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.wa_fn_use_c_telco_customer_churn"</span>)
+
+(df_raw.write
+   .<span class="f">format</span>(<span class="s">"delta"</span>)
+   .<span class="f">mode</span>(<span class="s">"overwrite"</span>)
+   .<span class="f">option</span>(<span class="s">"overwriteSchema"</span>, <span class="s">"true"</span>)
+   .<span class="f">saveAsTable</span>(<span class="s">"portfolio.default.telco_bronze"</span>))   <span class="c"># 7.043 linhas preservadas</span></pre>
+    </div>
+
+    <!-- ══════════════ SILVER ══════════════ -->
+    <p class="stage-label">ETAPA 02 — LIMPEZA</p>
+    <h2>Prata: limpeza e padronização</h2>
+    <p>
+      A camada Prata define o teto de qualidade do modelo. O dataset Telco tem um problema conhecido:
+      a coluna <code class="inline">TotalCharges</code> chega como <em>texto</em>, e clientes com
+      <code class="inline">tenure = 0</code> (recém-chegados, sem cobrança acumulada) têm um espaço
+      em branco <code class="inline">" "</code> no lugar do número. Um <code class="inline">cast</code>
+      direto produziria nulo silencioso. O tratamento é explícito: espaço vazio vira
+      <code class="inline">0.0</code>, o valor semanticamente correto.
+    </p>
+    <p>Três decisões definem esta camada:</p>
+    <p>
+      <strong>1. Binarizar o alvo.</strong> <code class="inline">Churn</code> “Yes”/“No” vira
+      <code class="inline">1</code>/<code class="inline">0</code>, formato numérico exigido pela
+      <code class="inline">labelCol</code> dos classificadores do Spark ML.
+      <br><br>
+      <strong>2. Remover o <code class="inline">customerID</code>.</strong> Identificadores únicos não
+      têm poder preditivo e abrem porta para <em>data leakage</em>: o modelo decoraria clientes em
+      vez de aprender padrões generalizáveis.
+      <br><br>
+      <strong>3. Normalizar categorias.</strong> Um <code class="inline">trim()</code> nas strings
+      evita que <code class="inline">"Yes"</code> e <code class="inline">"Yes "</code> virem
+      categorias distintas, o que corromperia o encoding adiante.
+    </p>
+    <p>
+      A binarização revela que cerca de <strong>26% dos clientes deram churn</strong>. É um
+      <strong>desbalanceamento de classes</strong>: a classe-alvo é a minoria. Esse número determina
+      a escolha da métrica de avaliação mais adiante.
+    </p>
+
+    <div class="sep">• • •</div>
+
+    <!-- ══════════════ EDA ══════════════ -->
+    <p class="stage-label">ETAPA 03 — EXPLORAÇÃO</p>
+    <h2>Análise exploratória (EDA com Spark SQL)</h2>
+    <p>
+      A análise exploratória foi escrita em <strong>Spark SQL</strong> sobre a camada Prata —
+      linguagem declarativa rodando sobre um motor que escala para terabytes. Cada consulta testou
+      uma hipótese de negócio. Os padrões resultantes explicam o churn e <em>definiram as features</em>
+      posteriores.
+    </p>
+
+    <div class="insights">
+      <div class="ins-row">
+        <div class="ins-stat">42,7%</div>
+        <div class="ins-txt">de churn em contratos <b>mês a mês</b>, contra <b>2,8%</b> nos de dois anos. Sem fidelidade, o custo de cancelar é baixo.</div>
+      </div>
+      <div class="ins-row">
+        <div class="ins-stat">47,7%</div>
+        <div class="ins-txt">de churn nos <b>primeiros 12 meses</b>. A relação é mais frágil no início; clientes consolidados tendem a permanecer.</div>
+      </div>
+      <div class="ins-row">
+        <div class="ins-stat">41,9%</div>
+        <div class="ins-txt">de churn entre clientes de <b>internet fibra</b> — serviço premium, com alta concorrência e expectativa de qualidade.</div>
+      </div>
+      <div class="ins-row">
+        <div class="ins-stat">45,3%</div>
+        <div class="ins-txt">de churn no <b>pagamento por cheque eletrônico</b>, indicador de baixo engajamento e pouco lock-in.</div>
+      </div>
+      <div class="ins-row">
+        <div class="ins-stat">+ serviços</div>
+        <div class="ins-txt">Mais serviços, <b>mais retenção</b>: quem contrata vários produtos tem maior custo de troca e mais valor percebido.</div>
+      </div>
+      <div class="ins-row">
+        <div class="ins-stat">R$74 vs 61</div>
+        <div class="ins-txt">quem cancela paga, em média, <b>mensalidade mais alta</b> — indício de sensibilidade a preço.</div>
+      </div>
+    </div>
+
+    <p>
+      Cada insight é uma <strong>feature em potencial</strong>: tempo de contrato, tipo de contrato,
+      serviço de internet, método de pagamento, número de serviços e cobrança mensal. A EDA serviu de
+      base para a engenharia de features.
+    </p>
+
+    <div class="sep">• • •</div>
+
+    <!-- ══════════════ GOLD / FEATURES ══════════════ -->
+    <p class="stage-label">ETAPA 04 — ENGENHARIA DE FEATURES</p>
+    <h2>Ouro: engenharia de features</h2>
+    <p>
+      Algoritmos operam sobre números, não sobre categorias como “contrato mês a mês” ou “fibra
+      ótica”. A camada Ouro transforma o dado limpo em um vetor numérico denso via um
+      <strong>Spark ML Pipeline</strong> de três estágios. O Pipeline garante reprodutibilidade:
+      <code class="inline">fit()</code> aprende os parâmetros (o vocabulário de categorias, por
+      exemplo) e <code class="inline">transform()</code> os aplica; o mesmo objeto serializado é
+      recarregado na inferência para reproduzir o pré-processamento.
+    </p>
+
+    <h3>Os três estágios de codificação</h3>
+    <p>
+      <strong>StringIndexer</strong> — converte cada categoria em um índice inteiro, ordenado por
+      frequência (o valor mais comum recebe <code class="inline">0</code>).
+      <code class="inline">handleInvalid="keep"</code> reserva um índice extra para categorias não
+      vistas no treino, evitando que o pipeline quebre em produção diante de um valor novo.
+    </p>
+    <p>
+      <strong>OneHotEncoder</strong> — o índice inteiro introduz uma ordem falsa: sugere
+      <code class="inline">2 &gt; 1 &gt; 0</code>, inexistente entre “cartão”, “boleto” e “cheque”.
+      O one-hot remove essa ordem, transformando cada índice em um vetor binário esparso.
+      <code class="inline">dropLast=True</code> descarta uma categoria por variável para evitar a
+      <em>dummy variable trap</em> — a multicolinearidade que desestabiliza modelos lineares.
+    </p>
+    <p>
+      <strong>VectorAssembler</strong> — reúne tudo (categóricas codificadas e numéricas) em uma
+      única coluna <code class="inline">features</code>, o vetor consumido pelos algoritmos.
+    </p>
+
+    <h3>Três features de domínio</h3>
+    <p>
+      Além das 21 variáveis originais, três features derivadas da EDA traduzem conhecimento de
+      negócio em colunas:
+    </p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>O que captura</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">num_services</code></td><td>Contagem de serviços adicionais (0–8). Correlaciona negativamente com churn — mais produtos, mais retenção.</td></tr>
+          <tr><td><code class="inline">charges_per_tenure</code></td><td><code class="inline">TotalCharges / tenure</code>: custo médio mensal acumulado, proxy do valor percebido ao longo do tempo.</td></tr>
+          <tr><td><code class="inline">is_new_customer</code></td><td>Flag para os primeiros 12 meses — o período com ~47,7% de churn identificado na EDA.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <span class="ct-tag">Training-serving skew</span>
+      <p>
+        Essas três features são criadas <em>fora</em> do pipeline Spark ML — ele as consome, mas não
+        as gera. Por isso precisam ser recriadas antes de qualquer inferência em dados novos. Omitir
+        essa etapa causa <em>training-serving skew</em>: o modelo recebe um vetor com formato diferente
+        do treino e produz predições inválidas sem erro aparente.
       </p>
-      <div class="flow">
-        <div class="layer">
-          <span class="layer-tag tag-bronze">Bronze</span>
-          <h3>Ingestão bruta</h3>
-          <p>CSV Telco carregado em Delta, imutável, sem filtros — apenas casting mínimo de tipos.</p>
+    </div>
+
+    <div class="sep">• • •</div>
+
+    <!-- ══════════════ MODELOS ══════════════ -->
+    <p class="stage-label">ETAPA 05 — TREINAMENTO</p>
+    <h2 id="modelos">Os três classificadores</h2>
+    <p>
+      Com o dataset Ouro pronto, o split é <strong>80% treino / 20% teste</strong>
+      (<code class="inline">seed=42</code> para reprodutibilidade), preservando a proporção de churn
+      em cada parte. São treinados <strong>três classificadores supervisionados</strong>, cada um com
+      uma abordagem distinta para separar “permanece” de “cancela”. Todos rodam
+      <strong>distribuídos</strong> via Spark MLlib, não em scikit-learn de nó único.
+    </p>
+
+    <div class="model-grid">
+      <div class="model-card">
+        <div class="mc-head">
+          <h3>1 · Regressão Logística</h3>
+          <span class="mc-type">linear · interpretável</span>
         </div>
-        <div class="layer">
-          <span class="layer-tag tag-silver">Silver</span>
-          <h3>Limpeza &amp; qualidade</h3>
-          <p>Tratamento de nulos, tipagem, normalização categórica e regras de negócio aplicadas.</p>
-        </div>
-        <div class="layer">
-          <span class="layer-tag tag-gold">Gold</span>
-          <h3>Features de modelagem</h3>
-          <p>Features derivadas (num_services, charges_per_tenure, is_new_customer) materializadas.</p>
-        </div>
+        <p>
+          O baseline. Modela a <em>probabilidade</em> de churn como combinação linear das features
+          passada por uma função sigmoide, que comprime o resultado para o intervalo [0, 1]. Aprende
+          um <strong>peso por feature</strong>, o que a torna interpretável: é possível ler quanto
+          cada variável contribui para o cancelamento. Aplica-se regularização <strong>L2 (Ridge)</strong>
+          leve para conter overfitting sem zerar coeficientes.
+        </p>
+        <div class="mc-params">maxIter=100 · regParam=0.01 · elasticNetParam=0.0 (100% L2)</div>
       </div>
-      <div class="code" style="margin-top:24px">
-        <span class="c"># data flow</span><br>
-        CSV (Kaggle) <span class="n">→</span> Bronze <span class="n">→</span> Silver <span class="n">→</span> Gold
-        <span class="n">→</span> Spark ML Pipeline <span class="n">→</span> MLflow <span class="n">→</span> Unity Catalog (champion)
+
+      <div class="model-card">
+        <div class="mc-head">
+          <h3>2 · Random Forest</h3>
+          <span class="mc-type">ensemble · bagging</span>
+        </div>
+        <p>
+          Cem árvores de decisão treinadas em paralelo, cada uma sobre uma amostra aleatória dos
+          dados e das features (<em>bootstrap aggregating</em>, ou <strong>bagging</strong>). A
+          predição final é o voto do conjunto. Árvores individuais têm <strong>alta variância</strong>
+          — mudam muito com pequenas alterações nos dados; agregar muitas reduz essa variância sem
+          aumentar o viés. Captura interações não-lineares e é robusta a outliers.
+        </p>
+        <div class="mc-params">numTrees=100 · maxDepth=8 · seed=42</div>
+      </div>
+
+      <div class="model-card">
+        <div class="mc-head">
+          <h3>3 · Gradient Boosted Trees</h3>
+          <span class="mc-type">ensemble · boosting</span>
+        </div>
+        <p>
+          Também um conjunto de árvores, mas com estratégia oposta à do Random Forest. O
+          <strong>boosting</strong> é sequencial: cada nova árvore corrige os <em>erros residuais</em>
+          da anterior, descendo o gradiente da função de perda. Ataca o <strong>viés</strong>, não a
+          variância; costuma ser o mais preciso dos três, ao custo de mais tempo de treino e maior
+          propensão a overfitting se mal calibrado. O <code class="inline">stepSize</code> (taxa de
+          aprendizado) controla esse equilíbrio.
+        </p>
+        <div class="mc-params">maxIter=50 · maxDepth=5 · stepSize=0.1 · seed=42</div>
       </div>
     </div>
-  </section>
 
-  <!-- ─── Stack ─── -->
-  <section id="stack">
-    <div class="container">
-      <p class="eyebrow">Stack técnica</p>
-      <h2 class="section-title">Ferramentas distribuídas, não scripts soltos</h2>
-      <p class="section-lead">
-        Toda feature vive em transformação Spark persistida em Delta — nunca em <code>.toPandas()</code>
-        intermediário. Cada execução é um run rastreado no MLflow.
+    <div class="callout">
+      <span class="ct-tag">Bagging × Boosting</span>
+      <p>
+        <strong>Bagging</strong> (Random Forest) treina árvores independentes e agrega — reduz a
+        <em>variância</em>. <strong>Boosting</strong> (GBT) treina árvores em sequência, cada uma
+        corrigindo a anterior — reduz o <em>viés</em>. Abordagens opostas para o mesmo fim: um
+        conjunto melhor que qualquer árvore isolada.
       </p>
-      <div class="stack">
-        <span class="chip">Apache Spark (PySpark)</span>
-        <span class="chip">Databricks Serverless</span>
-        <span class="chip">Delta Lake</span>
-        <span class="chip">Spark ML Pipeline</span>
-        <span class="chip">MLflow</span>
-        <span class="chip">Unity Catalog</span>
-        <span class="chip">Python 3.x</span>
-        <span class="chip">ruff</span>
+    </div>
+
+    <h3>Rastreamento com MLflow</h3>
+    <p>
+      Cada treino roda dentro de um <code class="inline">mlflow.start_run()</code>. Parâmetros,
+      métricas e o modelo serializado são logados automaticamente, e toda execução vira um <em>run</em>
+      comparável na interface do MLflow. É a base do <strong>MLOps</strong>: rastreabilidade,
+      comparação entre runs e nenhum modelo sem proveniência.
+    </p>
+
+    <div class="codeblock">
+      <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">05_treinamento_mlflow.py</span></div>
+<pre><span class="k">def</span> <span class="f">treinar_e_logar</span>(modelo, params, nome_run):
+    <span class="k">with</span> mlflow.<span class="f">start_run</span>(run_name=nome_run):
+        m     = modelo.<span class="f">fit</span>(df_train)
+        preds = m.<span class="f">transform</span>(df_test)
+
+        auc = evaluator_auc.<span class="f">evaluate</span>(preds)   <span class="c"># métrica de seleção</span>
+        f1  = evaluator_f1.<span class="f">evaluate</span>(preds)
+        mlflow.<span class="f">log_params</span>(params)
+        mlflow.<span class="f">log_metric</span>(<span class="s">"auc_roc"</span>, auc)
+        mlflow.spark.<span class="f">log_model</span>(m, <span class="s">"model"</span>)   <span class="c"># modelo versionado</span>
+        <span class="k">return</span> m, preds</pre>
+    </div>
+
+    <div class="sep">• • •</div>
+
+    <!-- ══════════════ MÉTRICA ══════════════ -->
+    <h2>Métrica de avaliação</h2>
+    <p>
+      O desbalanceamento determina a métrica. Com <strong>acurácia</strong>, um modelo que sempre
+      previsse “não cancela” acertaria ~74% — inútil, pois erraria justamente os clientes relevantes.
+      A métrica principal é a <strong>AUC-ROC</strong>: mede a capacidade de <em>ordenar</em> clientes
+      por risco, independe do limiar de decisão e é robusta a classes desbalanceadas. AUC 0,5 equivale
+      a aleatório; 1,0 é separação perfeita. F1 (equilíbrio entre precisão e recall) e acurácia entram
+      como métricas secundárias.
+    </p>
+    <p>
+      A <strong>matriz de confusão</strong> traduz a métrica para o negócio: um <em>falso negativo</em>
+      é um cliente que vai cancelar e não foi detectado — perda de receita. Um <em>falso positivo</em>
+      é um cliente fiel marcado como risco — custo de uma ação de retenção desnecessária. O peso
+      relativo entre os dois define a calibração do limiar.
+    </p>
+
+    <!-- ══════════════ RESULTADOS ══════════════ -->
+    <h2 id="resultados">Resultados</h2>
+    <p>
+      Treinados e avaliados no mesmo conjunto de teste, os três modelos ficaram em empate técnico,
+      todos na faixa de AUC <strong>0,82</strong>. O melhor resultado, por margem mínima, foi do
+      modelo mais simples:
+    </p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Modelo</th><th>Tipo</th><th>AUC-ROC</th><th>F1</th><th>Acurácia</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr class="champ">
+            <td><strong>Regressão Logística</strong></td>
+            <td>Linear</td>
+            <td><span class="num">0,8259</span><span class="bar" style="width:74px"></span></td>
+            <td class="num">0,7915</td>
+            <td class="num">0,8006</td>
+            <td><span class="champ-badge">Selecionado</span></td>
+          </tr>
+          <tr>
+            <td>Random Forest</td>
+            <td>Bagging</td>
+            <td><span class="num">0,8253</span><span class="bar" style="width:73px;opacity:.45"></span></td>
+            <td class="num">0,7852</td>
+            <td class="num">0,7984</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>Gradient Boosted Trees</td>
+            <td>Boosting</td>
+            <td><span class="num">0,8220</span><span class="bar" style="width:68px;opacity:.45"></span></td>
+            <td class="num">0,7882</td>
+            <td class="num">0,7963</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Por que o modelo linear teve o melhor desempenho</h3>
+    <p>
+      Quando um modelo linear empata com Random Forest e GBT, a fronteira entre churn e retenção
+      neste dataset é <strong>majoritariamente linear</strong>. Após o one-hot encoding, as variáveis
+      mais preditivas (tipo de contrato, tenure, método de pagamento) separam bem as classes sem
+      interações complexas, e os ensembles não encontraram estrutura não-linear relevante para
+      explorar.
+    </p>
+    <p>
+      Pelo princípio da <strong>parcimônia</strong>, entre modelos de desempenho equivalente escolhe-se
+      o mais simples. A Regressão Logística treina em segundos, é simples de servir e é
+      <strong>interpretável</strong>: a equipe de retenção consegue ler <em>por que</em> um cliente
+      foi marcado como risco. Para um caso de uso que orienta ações humanas, a interpretabilidade pesa
+      mais do que 0,3% de AUC. Essa foi a lógica de seleção; o melhor AUC apenas confirmou a decisão.
+    </p>
+
+    <div class="sep">• • •</div>
+
+    <!-- ══════════════ UNITY CATALOG ══════════════ -->
+    <p class="stage-label">ETAPA 06 — GOVERNANÇA &amp; INFERÊNCIA</p>
+    <h2>Governança e inferência</h2>
+    <p>
+      Um bom run no MLflow não equivale a aptidão para produção. O modelo selecionado é registrado no
+      <strong>Unity Catalog Model Registry</strong> — com uma <em>signature</em> que define o contrato
+      de entrada e saída — como <code class="inline">portfolio.default.telco-churn-predictor</code>,
+      versão 1. O registro separa a experimentação livre (qualquer run) da promoção governada (modelo
+      versionado, auditável, com rollback por <em>alias</em>).
+    </p>
+    <p>
+      Com o modelo promovido, a etapa final é a <strong>inferência em batch</strong>. O modelo pontua
+      a base de clientes, extrai a probabilidade de churn da classe positiva e a traduz em faixas
+      acionáveis pela equipe de CRM:
+    </p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Faixa de risco</th><th>Probabilidade de churn</th><th>Ação recomendada</th></tr></thead>
+        <tbody>
+          <tr><td><strong style="color:#b91c1c">🔴 ALTO</strong></td><td class="num">≥ 0,70</td><td>Retenção imediata — contato proativo, oferta dirigida</td></tr>
+          <tr><td><strong style="color:#b45309">🟡 MÉDIO</strong></td><td class="num">0,40 – 0,70</td><td>Monitoramento ativo, campanhas de relacionamento</td></tr>
+          <tr><td><strong style="color:#15803d">🟢 BAIXO</strong></td><td class="num">&lt; 0,40</td><td>Sem intervenção necessária</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      O resultado é uma tabela Delta — <code class="inline">telco_predictions</code> — com um score e
+      uma faixa de risco por cliente, pronta para dashboards e sistemas downstream. Os limiares são
+      parâmetros de negócio, ajustáveis conforme o custo relativo entre perder um cliente e executar
+      uma ação de retenção desnecessária.
+    </p>
+
+    <div class="sep">• • •</div>
+
+    <!-- ══════════════ FECHAMENTO ══════════════ -->
+    <h2>Considerações finais</h2>
+    <p>
+      O modelo selecionado tem AUC 0,826. O resultado principal do projeto, porém, não é o modelo, e
+      sim o <strong>sistema</strong> em torno dele: a arquitetura Medallion que mantém o dado
+      confiável, o MLflow que torna cada experimento reproduzível, o Unity Catalog que governa a
+      promoção e a inferência em batch que converte probabilidade em ação. Trocar o algoritmo é uma
+      alteração pontual; a fundação é o que sustenta o pipeline.
+    </p>
+
+    <div class="takeaways">
+      <h3>Em resumo</h3>
+      <ul>
+        <li><strong>Aprendizado supervisionado</strong> — há rótulos (<code class="inline">Churn</code>), logo é classificação binária, não clustering.</li>
+        <li><strong>Três algoritmos comparados</strong> — Regressão Logística (linear), Random Forest (bagging) e GBT (boosting), todos distribuídos no Spark MLlib.</li>
+        <li><strong>Modelo selecionado</strong> — a Regressão Logística (AUC 0,8259) igualou os ensembles; parcimônia e interpretabilidade definiram a escolha.</li>
+        <li><strong>AUC-ROC como métrica</strong> — robusta ao desbalanceamento de ~26% de churn, ao contrário da acurácia.</li>
+        <li><strong>Engenharia de features decisiva</strong> — StringIndexer → OneHotEncoder → VectorAssembler, mais três features de domínio guiadas pela EDA.</li>
+        <li><strong>MLOps completo</strong> — Medallion + MLflow + Unity Catalog: dado confiável, experimentos rastreados, promoção governada, score por cliente.</li>
+      </ul>
+    </div>
+
+    <div class="tags">
+      <a class="tag" href="#">#MachineLearning</a>
+      <a class="tag" href="#">#ApacheSpark</a>
+      <a class="tag" href="#">#Databricks</a>
+      <a class="tag" href="#">#MLOps</a>
+      <a class="tag" href="#">#ChurnPrediction</a>
+      <a class="tag" href="#">#AprendizadoSupervisionado</a>
+      <a class="tag" href="#">#MLflow</a>
+    </div>
+
+    <hr class="end-rule" />
+
+    <div class="end-card">
+      <div class="avatar">A</div>
+      <div class="e-meta">
+        <div class="e-name">Athos Roque</div>
+        <div class="e-bio">
+          Em transição de suporte técnico para Engenharia e Ciência de Dados. Construindo um
+          portfólio reproduzível de projetos em SQL avançado, séries temporais, ML em escala e
+          MLOps, tudo rodando em homelab próprio.
+        </div>
+        <div class="e-links">
+          <a href="https://github.com/athosroque/Homelab/tree/master/spark-churn" target="_blank" rel="noopener">📦 Repositório</a>
+          <a href="https://github.com/athosroque" target="_blank" rel="noopener">⌨️ GitHub</a>
+        </div>
       </div>
     </div>
-  </section>
-
-  <!-- ─── Destaques de engenharia ─── -->
-  <section id="destaques">
-    <div class="container">
-      <p class="eyebrow">Destaques de engenharia</p>
-      <h2 class="section-title">Decisões que sustentam o pipeline</h2>
-      <p class="section-lead">Comparação de modelos rastreada e promoção formal — aprovação no experimento ≠ aprovação para produção.</p>
-      <div class="cards">
-        <div class="card">
-          <div class="card-ic">🏆</div>
-          <h3>GBT como campeão</h3>
-          <p>Logistic Regression, Random Forest e GBT comparados; GBT promovido por maior AUC (0.82) com tempo de treino aceitável.</p>
-        </div>
-        <div class="card">
-          <div class="card-ic">🔐</div>
-          <h3>Unity Catalog como gate</h3>
-          <p>Nenhum modelo vira produção sem registro no Unity Catalog com alias <code>champion</code>. Promoção auditável, com rollback por alias.</p>
-        </div>
-        <div class="card">
-          <div class="card-ic">📊</div>
-          <h3>Tudo versionado no MLflow</h3>
-          <p>Sem run, não existiu. Parâmetros, métricas e artefatos logados em cada execução, mesmo exploratória.</p>
-        </div>
-        <div class="card">
-          <div class="card-ic">⚙️</div>
-          <h3>Features em Spark, distribuídas</h3>
-          <p>StringIndexer → OneHotEncoder → VectorAssembler serializados via Spark ML Pipeline + MLflow.</p>
-        </div>
-      </div>
-
-      <div style="margin-top:40px">
-        <div class="tbl-wrap">
-          <table>
-            <thead>
-              <tr><th>Modelo</th><th>AUC-ROC</th><th>F1-Score</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>Logistic Regression</td><td>0.82</td><td>0.78</td><td class="champ">Campeão ✓</td></tr>
-              <tr><td>Random Forest</td><td>0.81</td><td>0.80</td><td>—</td></tr>
-              <tr><td>GBT (Gradient Boosted Trees)</td><td>0.82</td><td>0.81</td><td>—</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── Como rodar ─── -->
-  <section id="rodar">
-    <div class="container">
-      <p class="eyebrow">Como rodar</p>
-      <h2 class="section-title">Reprodução no Databricks</h2>
-      <p class="section-lead">Workspace com Serverless habilitado e Unity Catalog configurado (catálogo <code>portfolio</code>, schema <code>default</code>).</p>
-      <div class="code">
-        <span class="c"># 1. Importar os notebooks de notebooks/ para o workspace</span><br>
-        <span class="c"># 2. Upload do CSV para o volume Unity Catalog</span><br>
-        /Volumes/portfolio/default/dados/<br><br>
-        <span class="c"># 3. Executar na ordem (cada notebook lê do anterior)</span><br>
-        01_ingestao_bronze <span class="n">→</span> 02_limpeza_prata <span class="n">→</span> 03_eda_spark_sql<br>
-        <span class="n">→</span> 04_feature_engineering <span class="n">→</span> 05_treinamento_mlflow <span class="n">→</span> 06_batch_inference<br><br>
-        <span class="c"># 4. Validar no MLflow UI: AUC de teste ≈ 0.82</span>
-      </div>
-    </div>
-  </section>
+  </article>
 
   <footer>
-    <div class="container">
-      <p>Desenvolvido por <a href="https://github.com/athosroque">Athos Roque</a> · Brasília, DF</p>
-      <p class="draft-note">// esqueleto inicial — refinar conteúdo, gráficos e narrativa antes do deploy final</p>
-    </div>
+    <p>
+      Escrito por <a href="https://github.com/athosroque">Athos Roque</a> ·
+      Dataset público <a href="https://www.kaggle.com/datasets/blastchar/telco-customer-churn" target="_blank" rel="noopener">Telco Customer Churn</a> (Kaggle) ·
+      Brasília, DF
+    </p>
   </footer>
+
+  <script>
+    // reading-progress bar
+    const bar = document.getElementById('progress');
+    const onScroll = () => {
+      const h = document.documentElement;
+      const scrolled = h.scrollTop;
+      const height = h.scrollHeight - h.clientHeight;
+      bar.style.width = (height > 0 ? (scrolled / height) * 100 : 0) + '%';
+    };
+    document.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  </script>
 </body>
 </html>
