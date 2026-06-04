@@ -1,0 +1,10 @@
+{
+  // Projeto estático (apenas assets) — sem script de Worker.
+  // Cloudflare: defina "Root directory" = spark-churn nas Build settings;
+  // o deploy roda `npx wrangler deploy` e serve os arquivos abaixo.
+  "name": "spark-churn",
+  "compatibility_date": "2025-06-01",
+  "assets": {
+    "directory": "./"
+  }
+}
