@@ -149,8 +149,8 @@
       border-right: 1px solid var(--line-soft);
     }
     .pipe-node:last-child { border-right: none; }
-    .pipe-node .pn-top { font-weight: 600; color: var(--ink); font-family: var(--sans); font-size: 13px; }
-    .pipe-node .pn-bot { color: var(--ink-soft); font-size: 11.5px; margin-top: 4px; }
+    .pipe-node .pn-top { display: block; font-weight: 600; color: var(--ink); font-family: var(--sans); font-size: 13px; }
+    .pipe-node .pn-bot { display: block; color: var(--ink-soft); font-size: 11.5px; margin-top: 4px; }
     .pipe-node .pn-ic  { font-size: 18px; display: block; margin-bottom: 8px; }
     figcaption {
       font-family: var(--sans); font-size: 13.5px; color: var(--ink-faint);
@@ -550,6 +550,23 @@ df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.w
       a escolha da métrica de avaliação mais adiante.
     </p>
 
+    <div class="codeblock">
+      <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">02_limpeza_prata.py</span></div>
+<pre><span class="c"># Espaço em branco em TotalCharges → 0.0 (clientes com tenure = 0 sem cobrança)</span>
+df_silver = (df_bronze
+  .<span class="f">withColumn</span>(<span class="s">"TotalCharges"</span>,
+      F.<span class="f">when</span>(F.<span class="f">trim</span>(F.<span class="f">col</span>(<span class="s">"TotalCharges"</span>)) == <span class="s">""</span>, F.<span class="f">lit</span>(<span class="n">0.0</span>))
+       .<span class="f">otherwise</span>(F.<span class="f">col</span>(<span class="s">"TotalCharges"</span>).<span class="f">cast</span>(<span class="s">"double"</span>)))
+  .<span class="f">withColumn</span>(<span class="s">"Churn"</span>,
+      (F.<span class="f">col</span>(<span class="s">"Churn"</span>) == F.<span class="f">lit</span>(<span class="s">"Yes"</span>)).<span class="f">cast</span>(<span class="s">"int"</span>))   <span class="c"># "Yes"/"No" → 1/0</span>
+  .<span class="f">drop</span>(<span class="s">"customerID"</span>))                               <span class="c"># sem poder preditivo</span>
+
+(df_silver.write
+   .<span class="f">format</span>(<span class="s">"delta"</span>).<span class="f">mode</span>(<span class="s">"overwrite"</span>)
+   .<span class="f">option</span>(<span class="s">"overwriteSchema"</span>, <span class="s">"true"</span>)
+   .<span class="f">saveAsTable</span>(<span class="s">"portfolio.default.telco_silver"</span>))</pre>
+    </div>
+
     <div class="sep">• • •</div>
 
     <!-- ══════════════ EDA ══════════════ -->
@@ -594,6 +611,20 @@ df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.w
       serviço de internet, método de pagamento, número de serviços e cobrança mensal. A EDA serviu de
       base para a engenharia de features.
     </p>
+
+    <div class="codeblock">
+      <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">03_eda_spark_sql.sql</span></div>
+<pre><span class="c">-- Taxa de churn por tipo de contrato — hipótese de fidelização</span>
+<span class="k">SELECT</span>  Contract,
+        <span class="f">COUNT</span>(*)                          <span class="k">AS</span> total,
+        <span class="f">SUM</span>(Churn)                         <span class="k">AS</span> churned,
+        <span class="f">ROUND</span>(<span class="f">AVG</span>(Churn) * <span class="n">100</span>, <span class="n">1</span>)        <span class="k">AS</span> churn_pct
+<span class="k">FROM</span>    portfolio.default.telco_silver
+<span class="k">GROUP</span>   <span class="k">BY</span> Contract
+<span class="k">ORDER</span>   <span class="k">BY</span> churn_pct <span class="k">DESC</span>
+
+<span class="c">-- Resultado: Month-to-month 42,7% · One year 11,3% · Two year 2,8%</span></pre>
+    </div>
 
     <div class="sep">• • •</div>
 
@@ -651,6 +682,29 @@ df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.w
         essa etapa causa <em>training-serving skew</em>: o modelo recebe um vetor com formato diferente
         do treino e produz predições inválidas sem erro aparente.
       </p>
+    </div>
+
+    <div class="codeblock">
+      <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">04_feature_engineering.py</span></div>
+<pre><span class="c"># Features de domínio — derivadas dos padrões encontrados na EDA</span>
+service_cols = [<span class="s">"PhoneService"</span>, <span class="s">"MultipleLines"</span>, <span class="s">"OnlineSecurity"</span>,
+                <span class="s">"OnlineBackup"</span>, <span class="s">"DeviceProtection"</span>, <span class="s">"TechSupport"</span>,
+                <span class="s">"StreamingTV"</span>, <span class="s">"StreamingMovies"</span>]
+
+df_gold = (df_silver
+  .<span class="f">withColumn</span>(<span class="s">"num_services"</span>,
+      <span class="f">sum</span>(F.<span class="f">when</span>(F.<span class="f">col</span>(c) == <span class="s">"Yes"</span>, <span class="n">1</span>).<span class="f">otherwise</span>(<span class="n">0</span>) <span class="k">for</span> c <span class="k">in</span> service_cols))
+  .<span class="f">withColumn</span>(<span class="s">"charges_per_tenure"</span>,
+      F.<span class="f">col</span>(<span class="s">"TotalCharges"</span>) / F.<span class="f">greatest</span>(F.<span class="f">col</span>(<span class="s">"tenure"</span>), F.<span class="f">lit</span>(<span class="n">1</span>)))
+  .<span class="f">withColumn</span>(<span class="s">"is_new_customer"</span>,
+      (F.<span class="f">col</span>(<span class="s">"tenure"</span>) &lt;= <span class="n">12</span>).<span class="f">cast</span>(<span class="s">"int"</span>)))
+
+<span class="c"># Pipeline: StringIndexer → OneHotEncoder → VectorAssembler</span>
+indexers  = [<span class="f">StringIndexer</span>(inputCol=c, outputCol=c+<span class="s">"_idx"</span>, handleInvalid=<span class="s">"keep"</span>) <span class="k">for</span> c <span class="k">in</span> cat_cols]
+encoders  = [<span class="f">OneHotEncoder</span>(inputCol=c+<span class="s">"_idx"</span>, outputCol=c+<span class="s">"_ohe"</span>, dropLast=<span class="k">True</span>)  <span class="k">for</span> c <span class="k">in</span> cat_cols]
+assembler = <span class="f">VectorAssembler</span>(inputCols=num_cols + [c+<span class="s">"_ohe"</span> <span class="k">for</span> c <span class="k">in</span> cat_cols], outputCol=<span class="s">"features"</span>)
+
+df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [assembler]).<span class="f">fit</span>(df_gold).<span class="f">transform</span>(df_gold)</pre>
     </div>
 
     <div class="sep">• • •</div>
@@ -859,6 +913,25 @@ df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.w
       uma ação de retenção desnecessária.
     </p>
 
+    <div class="codeblock">
+      <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">06_batch_inference.py</span></div>
+<pre><span class="c"># Carrega o modelo promovido no Unity Catalog e pontua a base inteira</span>
+model    = mlflow.spark.<span class="f">load_model</span>(<span class="s">"models:/portfolio.default.telco-churn-predictor/1"</span>)
+df_preds = model.<span class="f">transform</span>(df_gold_inference)
+
+<span class="c"># Extrai p(churn) do vetor de probabilidades e classifica por faixa</span>
+extract_prob = F.<span class="f">udf</span>(<span class="k">lambda</span> v: <span class="f">float</span>(v[<span class="n">1</span>]), DoubleType())
+
+df_scores = (df_preds
+  .<span class="f">withColumn</span>(<span class="s">"churn_prob"</span>, <span class="f">extract_prob</span>(F.<span class="f">col</span>(<span class="s">"probability"</span>)))
+  .<span class="f">withColumn</span>(<span class="s">"risco"</span>,
+      F.<span class="f">when</span>(F.<span class="f">col</span>(<span class="s">"churn_prob"</span>) >= <span class="n">0.70</span>, <span class="s">"ALTO"</span>)
+       .<span class="f">when</span>(F.<span class="f">col</span>(<span class="s">"churn_prob"</span>) >= <span class="n">0.40</span>, <span class="s">"MÉDIO"</span>)
+       .<span class="f">otherwise</span>(<span class="s">"BAIXO"</span>)))
+
+df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<span class="f">mode</span>(<span class="s">"overwrite"</span>).<span class="f">saveAsTable</span>(<span class="s">"portfolio.default.telco_predictions"</span>)</pre>
+    </div>
+
     <div class="sep">• • •</div>
 
     <!-- ══════════════ FECHAMENTO ══════════════ -->
@@ -905,7 +978,7 @@ df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.w
           MLOps, tudo rodando em homelab próprio.
         </div>
         <div class="e-links">
-          <a href="https://github.com/athosroque/Homelab/tree/master/spark-churn" target="_blank" rel="noopener">📦 Repositório</a>
+          <a href="https://github.com/athosroque/Databricks_churn" target="_blank" rel="noopener">📦 Repositório</a>
           <a href="https://github.com/athosroque" target="_blank" rel="noopener">⌨️ GitHub</a>
         </div>
       </div>
