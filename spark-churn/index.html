@@ -98,6 +98,31 @@
     .nav-cta:hover { background: var(--accent-ink); transform: translateY(-1px); }
     @media (max-width: 640px) { .nav-link.hide-sm { display: none; } }
 
+    /* ── índice lateral (scroll-spy) ── */
+    .toc {
+      position: fixed; top: 118px; left: calc(50% - 562px);
+      width: 198px; max-height: calc(100vh - 150px); overflow-y: auto;
+      z-index: 50; font-family: var(--sans);
+    }
+    .toc::-webkit-scrollbar { width: 0; }
+    .toc-head {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+      text-transform: uppercase; color: var(--ink-faint);
+      padding-left: 14px; margin-bottom: 12px;
+    }
+    .toc ul { list-style: none; margin: 0; padding: 0; }
+    .toc a {
+      display: block; font-size: 13px; line-height: 1.32;
+      color: var(--ink-soft); text-decoration: none;
+      padding: 6px 0 6px 14px; border-left: 2px solid var(--line);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .toc a:hover { color: var(--ink); }
+    .toc a.active {
+      color: var(--accent-ink); font-weight: 600; border-left-color: var(--accent);
+    }
+    @media (max-width: 1199px) { .toc { display: none; } }
+
     /* ── article scaffold ── */
     article { max-width: var(--read); margin: 0 auto; padding: 0 24px; }
     .wide   { max-width: 920px; margin: 0 auto; padding: 0 24px; }
@@ -167,7 +192,7 @@
     article h2 {
       font-family: var(--sans); font-weight: 800;
       font-size: clamp(25px, 4vw, 32px); line-height: 1.2; letter-spacing: -0.8px;
-      color: var(--ink); margin: 54px 0 12px;
+      color: var(--ink); margin: 54px 0 12px; scroll-margin-top: 80px;
     }
     article h3 {
       font-family: var(--sans); font-weight: 700;
@@ -361,9 +386,26 @@
       <a class="nav-link hide-sm" href="#supervisionado">Teoria</a>
       <a class="nav-link hide-sm" href="#modelos">Modelos</a>
       <a class="nav-link hide-sm" href="#resultados">Resultados</a>
-      <a class="nav-cta" href="https://github.com/athosroque/Homelab/tree/master/spark-churn" target="_blank" rel="noopener">Ver no GitHub</a>
+      <a class="nav-cta" href="https://github.com/athosroque/Databricks_churn" target="_blank" rel="noopener">Ver no GitHub</a>
     </div>
   </nav>
+
+  <!-- índice lateral clicável (desktop) -->
+  <aside class="toc" aria-label="Índice do artigo">
+    <div class="toc-head">Índice</div>
+    <ul>
+      <li><a data-target="supervisionado" href="#supervisionado">Tipo de aprendizado</a></li>
+      <li><a data-target="arquitetura"   href="#arquitetura">Arquitetura Medallion</a></li>
+      <li><a data-target="bronze"        href="#bronze">Bronze · ingestão</a></li>
+      <li><a data-target="prata"         href="#prata">Prata · limpeza</a></li>
+      <li><a data-target="eda"           href="#eda">EDA · exploração</a></li>
+      <li><a data-target="ouro"          href="#ouro">Ouro · features</a></li>
+      <li><a data-target="modelos"       href="#modelos">Os três modelos</a></li>
+      <li><a data-target="metrica"       href="#metrica">Métrica &amp; resultados</a></li>
+      <li><a data-target="governanca"    href="#governanca">Governança &amp; inferência</a></li>
+      <li><a data-target="fim"           href="#fim">Considerações finais</a></li>
+    </ul>
+  </aside>
 
   <article>
     <p class="kicker">Machine Learning · Engenharia de Dados</p>
@@ -379,7 +421,7 @@
       <div class="byline-meta">
         <div class="byline-name">Athos Roque</div>
         <div class="byline-sub">
-          11 min de leitura <span class="dot">·</span> Brasília, DF <span class="dot">·</span> jun. 2026
+          8 min de leitura <span class="dot">·</span> Brasília, DF <span class="dot">·</span> jun. 2026
         </div>
       </div>
     </div>
@@ -401,19 +443,18 @@
     </figure>
 
     <p class="lead-p">
-      Operadoras de telecom perdem clientes continuamente para cancelamento — o <strong>churn</strong>.
-      O custo é relevante: adquirir um cliente novo é várias vezes mais caro do que reter um
-      existente. A pergunta de negócio do projeto é:
+      Operadoras de telecom perdem clientes continuamente para o cancelamento — o <strong>churn</strong> —
+      e adquirir um cliente novo custa várias vezes mais do que reter um existente. A pergunta de
+      negócio do projeto é:
     </p>
 
     <blockquote>“Quais clientes têm maior probabilidade de cancelar nos próximos meses — e por quê?”</blockquote>
 
     <p>
       Responder exige mais do que treinar um modelo: exige um <strong>pipeline de ponta a ponta</strong>
-      que lide com dado sujo, escala distribuída, rastreabilidade de experimentos e promoção governada
-      para produção. Este artigo percorre cada etapa do pipeline — construído sobre Apache Spark,
-      Databricks, Delta Lake, MLflow e Unity Catalog — com foco nos <strong>algoritmos</strong>, na
-      teoria de cada escolha e nas decisões que sustentam o resultado.
+      que lide com dado sujo, escala distribuída, rastreabilidade de experimentos e promoção governada.
+      Este artigo percorre cada etapa — sobre Apache Spark, Databricks, Delta Lake, MLflow e Unity
+      Catalog — com foco nos <strong>algoritmos</strong> e nas decisões que sustentam o resultado.
     </p>
 
     <div class="stats">
@@ -430,23 +471,19 @@
       <strong>algoritmos disponíveis</strong>, as métricas válidas e o formato do dado.
     </p>
     <p>
-      No <strong>aprendizado não supervisionado</strong>, os dados não têm rótulos e o algoritmo
-      precisa descobrir estrutura por conta própria — agrupar clientes parecidos (<em>clustering</em>,
-      como o <code class="inline">k-means</code>), reduzir dimensionalidade (PCA) ou detectar
-      anomalias. Não há rótulo a prever, apenas padrões a identificar.
+      No <strong>aprendizado não supervisionado</strong>, os dados não têm rótulos: o algoritmo
+      descobre estrutura sozinho — agrupa clientes parecidos (<em>clustering</em>, como o
+      <code class="inline">k-means</code>), reduz dimensionalidade (PCA) ou detecta anomalias.
+      Não há rótulo a prever, apenas padrões a identificar.
     </p>
     <p>
       No <strong>aprendizado supervisionado</strong>, cada exemplo vem com um <em>rótulo</em>, e o
-      algoritmo aprende a função que mapeia as variáveis de entrada para esse rótulo, generalizando
-      para casos futuros. É o caso deste projeto: o dataset tem a coluna <code class="inline">Churn</code>
-      indicando, para cada cliente histórico, se ele cancelou ou não. Com rótulo disponível, o
-      problema é <strong>supervisionado</strong>.
-    </p>
-    <p>
-      Como o rótulo assume apenas dois valores — cancelou (<code class="inline">1</code>) ou
-      permaneceu (<code class="inline">0</code>) — trata-se de <strong>classificação binária</strong>.
-      O rótulo discreto distingue o problema de uma <em>regressão</em> (prever um valor contínuo) e
-      habilita métricas como AUC-ROC e F1.
+      algoritmo aprende a função que mapeia as variáveis de entrada para esse rótulo. É o caso aqui:
+      o dataset tem a coluna <code class="inline">Churn</code> indicando, para cada cliente histórico,
+      se ele cancelou. Como o rótulo assume só dois valores — cancelou (<code class="inline">1</code>)
+      ou permaneceu (<code class="inline">0</code>) — trata-se de <strong>classificação binária</strong>.
+      O rótulo discreto distingue o problema de uma <em>regressão</em> (valor contínuo) e habilita
+      métricas como AUC-ROC e F1.
     </p>
 
     <div class="callout">
@@ -467,7 +504,7 @@
     <p>
       A qualidade do modelo é limitada pela qualidade do dado, e dado de produção chega sujo. A
       arquitetura <strong>Medallion</strong> organiza o fluxo em três camadas sobre o
-      <strong>Delta Lake</strong>, cada uma com uma responsabilidade definida. Isso permite
+      <strong>Delta Lake</strong>, cada uma com uma responsabilidade definida — permitindo
       reprocessar, auditar e reutilizar o dado sem reescrever o pipeline inteiro.
     </p>
 
@@ -490,21 +527,21 @@
     </div>
 
     <p>
-      Delta Lake em vez de Parquet puro porque traz <strong>transações ACID</strong>, versionamento
-      e <em>time travel</em> — é possível consultar o estado da tabela em qualquer versão anterior.
-      Em um pipeline reexecutado dezenas de vezes, isso garante consistência e reprodutibilidade.
+      Delta Lake em vez de Parquet puro pelas <strong>transações ACID</strong>, versionamento e
+      <em>time travel</em> — consultar o estado da tabela em qualquer versão anterior. Em um pipeline
+      reexecutado dezenas de vezes, isso garante consistência e reprodutibilidade.
     </p>
 
     <div class="sep">• • •</div>
 
     <!-- ══════════════ BRONZE ══════════════ -->
     <p class="stage-label">ETAPA 01 — INGESTÃO</p>
-    <h2>Bronze: ingestão sem transformação</h2>
+    <h2 id="bronze">Bronze: ingestão sem transformação</h2>
     <p>
       A camada Bronze lê a tabela-fonte registrada no Unity Catalog e a persiste em Delta
-      <strong>sem transformação</strong>, apenas com casting mínimo de tipos. A regra: nada que
-      altere o significado do dado entra aqui. Com o Bronze imutável, um bug na limpeza pode ser
-      corrigido reprocessando, sem perda de dado.
+      <strong>sem transformação</strong>, apenas com casting mínimo de tipos. Nada que altere o
+      significado do dado entra aqui. Com o Bronze imutável, um bug na limpeza se corrige
+      reprocessando, sem perda de dado.
     </p>
 
     <div class="codeblock">
@@ -521,11 +558,11 @@ df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.w
 
     <!-- ══════════════ SILVER ══════════════ -->
     <p class="stage-label">ETAPA 02 — LIMPEZA</p>
-    <h2>Prata: limpeza e padronização</h2>
+    <h2 id="prata">Prata: limpeza e padronização</h2>
     <p>
       A camada Prata define o teto de qualidade do modelo. O dataset Telco tem um problema conhecido:
       a coluna <code class="inline">TotalCharges</code> chega como <em>texto</em>, e clientes com
-      <code class="inline">tenure = 0</code> (recém-chegados, sem cobrança acumulada) têm um espaço
+      <code class="inline">tenure = 0</code> (recém-chegados, sem cobrança acumulada) trazem um espaço
       em branco <code class="inline">" "</code> no lugar do número. Um <code class="inline">cast</code>
       direto produziria nulo silencioso. O tratamento é explícito: espaço vazio vira
       <code class="inline">0.0</code>, o valor semanticamente correto.
@@ -545,9 +582,9 @@ df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.w
       categorias distintas, o que corromperia o encoding adiante.
     </p>
     <p>
-      A binarização revela que cerca de <strong>26% dos clientes deram churn</strong>. É um
-      <strong>desbalanceamento de classes</strong>: a classe-alvo é a minoria. Esse número determina
-      a escolha da métrica de avaliação mais adiante.
+      A binarização revela que cerca de <strong>26% dos clientes deram churn</strong> — um
+      <strong>desbalanceamento de classes</strong>, com a classe-alvo na minoria. Esse número
+      determina a escolha da métrica de avaliação mais adiante.
     </p>
 
     <div class="codeblock">
@@ -571,12 +608,11 @@ df_silver = (df_bronze
 
     <!-- ══════════════ EDA ══════════════ -->
     <p class="stage-label">ETAPA 03 — EXPLORAÇÃO</p>
-    <h2>Análise exploratória (EDA com Spark SQL)</h2>
+    <h2 id="eda">Análise exploratória (EDA com Spark SQL)</h2>
     <p>
       A análise exploratória foi escrita em <strong>Spark SQL</strong> sobre a camada Prata —
       linguagem declarativa rodando sobre um motor que escala para terabytes. Cada consulta testou
-      uma hipótese de negócio. Os padrões resultantes explicam o churn e <em>definiram as features</em>
-      posteriores.
+      uma hipótese de negócio, e os padrões resultantes <em>definiram as features</em> posteriores.
     </p>
 
     <div class="insights">
@@ -607,9 +643,9 @@ df_silver = (df_bronze
     </div>
 
     <p>
-      Cada insight é uma <strong>feature em potencial</strong>: tempo de contrato, tipo de contrato,
-      serviço de internet, método de pagamento, número de serviços e cobrança mensal. A EDA serviu de
-      base para a engenharia de features.
+      Cada insight vira uma <strong>feature em potencial</strong> — tempo e tipo de contrato, serviço
+      de internet, método de pagamento, número de serviços e cobrança mensal — base da engenharia de
+      features adiante.
     </p>
 
     <div class="codeblock">
@@ -630,33 +666,33 @@ df_silver = (df_bronze
 
     <!-- ══════════════ GOLD / FEATURES ══════════════ -->
     <p class="stage-label">ETAPA 04 — ENGENHARIA DE FEATURES</p>
-    <h2>Ouro: engenharia de features</h2>
+    <h2 id="ouro">Ouro: engenharia de features</h2>
     <p>
       Algoritmos operam sobre números, não sobre categorias como “contrato mês a mês” ou “fibra
       ótica”. A camada Ouro transforma o dado limpo em um vetor numérico denso via um
       <strong>Spark ML Pipeline</strong> de três estágios. O Pipeline garante reprodutibilidade:
       <code class="inline">fit()</code> aprende os parâmetros (o vocabulário de categorias, por
       exemplo) e <code class="inline">transform()</code> os aplica; o mesmo objeto serializado é
-      recarregado na inferência para reproduzir o pré-processamento.
+      recarregado na inferência.
     </p>
 
     <h3>Os três estágios de codificação</h3>
     <p>
       <strong>StringIndexer</strong> — converte cada categoria em um índice inteiro, ordenado por
       frequência (o valor mais comum recebe <code class="inline">0</code>).
-      <code class="inline">handleInvalid="keep"</code> reserva um índice extra para categorias não
-      vistas no treino, evitando que o pipeline quebre em produção diante de um valor novo.
+      <code class="inline">handleInvalid="keep"</code> reserva um índice para categorias não vistas
+      no treino, evitando que o pipeline quebre em produção diante de um valor novo.
     </p>
     <p>
-      <strong>OneHotEncoder</strong> — o índice inteiro introduz uma ordem falsa: sugere
-      <code class="inline">2 &gt; 1 &gt; 0</code>, inexistente entre “cartão”, “boleto” e “cheque”.
+      <strong>OneHotEncoder</strong> — o índice inteiro introduz uma ordem falsa
+      (<code class="inline">2 &gt; 1 &gt; 0</code>, inexistente entre “cartão”, “boleto” e “cheque”).
       O one-hot remove essa ordem, transformando cada índice em um vetor binário esparso.
       <code class="inline">dropLast=True</code> descarta uma categoria por variável para evitar a
       <em>dummy variable trap</em> — a multicolinearidade que desestabiliza modelos lineares.
     </p>
     <p>
-      <strong>VectorAssembler</strong> — reúne tudo (categóricas codificadas e numéricas) em uma
-      única coluna <code class="inline">features</code>, o vetor consumido pelos algoritmos.
+      <strong>VectorAssembler</strong> — reúne as categóricas codificadas e as numéricas em uma única
+      coluna <code class="inline">features</code>, o vetor consumido pelos algoritmos.
     </p>
 
     <h3>Três features de domínio</h3>
@@ -714,10 +750,10 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
     <h2 id="modelos">Os três classificadores</h2>
     <p>
       Com o dataset Ouro pronto, o split é <strong>80% treino / 20% teste</strong>
-      (<code class="inline">seed=42</code> para reprodutibilidade), preservando a proporção de churn
-      em cada parte. São treinados <strong>três classificadores supervisionados</strong>, cada um com
-      uma abordagem distinta para separar “permanece” de “cancela”. Todos rodam
-      <strong>distribuídos</strong> via Spark MLlib, não em scikit-learn de nó único.
+      (<code class="inline">seed=42</code>), preservando a proporção de churn em cada parte. São
+      treinados <strong>três classificadores supervisionados</strong>, cada um com uma abordagem
+      distinta para separar “permanece” de “cancela”, todos rodando <strong>distribuídos</strong> via
+      Spark MLlib — não em scikit-learn de nó único.
     </p>
 
     <div class="model-grid">
@@ -728,10 +764,10 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
         </div>
         <p>
           O baseline. Modela a <em>probabilidade</em> de churn como combinação linear das features
-          passada por uma função sigmoide, que comprime o resultado para o intervalo [0, 1]. Aprende
-          um <strong>peso por feature</strong>, o que a torna interpretável: é possível ler quanto
-          cada variável contribui para o cancelamento. Aplica-se regularização <strong>L2 (Ridge)</strong>
-          leve para conter overfitting sem zerar coeficientes.
+          passada por uma sigmoide, que comprime o resultado para [0, 1]. Aprende um
+          <strong>peso por feature</strong> — interpretável: dá para ler quanto cada variável
+          contribui. Regularização <strong>L2 (Ridge)</strong> leve contém overfitting sem zerar
+          coeficientes.
         </p>
         <div class="mc-params">maxIter=100 · regParam=0.01 · elasticNetParam=0.0 (100% L2)</div>
       </div>
@@ -744,9 +780,9 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
         <p>
           Cem árvores de decisão treinadas em paralelo, cada uma sobre uma amostra aleatória dos
           dados e das features (<em>bootstrap aggregating</em>, ou <strong>bagging</strong>). A
-          predição final é o voto do conjunto. Árvores individuais têm <strong>alta variância</strong>
-          — mudam muito com pequenas alterações nos dados; agregar muitas reduz essa variância sem
-          aumentar o viés. Captura interações não-lineares e é robusta a outliers.
+          predição é o voto do conjunto. Árvores isoladas têm <strong>alta variância</strong>;
+          agregar muitas a reduz sem aumentar o viés. Captura interações não-lineares e é robusta a
+          outliers.
         </p>
         <div class="mc-params">numTrees=100 · maxDepth=8 · seed=42</div>
       </div>
@@ -757,12 +793,11 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
           <span class="mc-type">ensemble · boosting</span>
         </div>
         <p>
-          Também um conjunto de árvores, mas com estratégia oposta à do Random Forest. O
-          <strong>boosting</strong> é sequencial: cada nova árvore corrige os <em>erros residuais</em>
-          da anterior, descendo o gradiente da função de perda. Ataca o <strong>viés</strong>, não a
-          variância; costuma ser o mais preciso dos três, ao custo de mais tempo de treino e maior
-          propensão a overfitting se mal calibrado. O <code class="inline">stepSize</code> (taxa de
-          aprendizado) controla esse equilíbrio.
+          Também um conjunto de árvores, mas com estratégia oposta. O <strong>boosting</strong> é
+          sequencial: cada árvore corrige os <em>erros residuais</em> da anterior, descendo o
+          gradiente da função de perda. Ataca o <strong>viés</strong>, não a variância; costuma ser o
+          mais preciso, ao custo de mais treino e maior risco de overfitting se mal calibrado. O
+          <code class="inline">stepSize</code> (taxa de aprendizado) controla esse equilíbrio.
         </p>
         <div class="mc-params">maxIter=50 · maxDepth=5 · stepSize=0.1 · seed=42</div>
       </div>
@@ -780,10 +815,10 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
 
     <h3>Rastreamento com MLflow</h3>
     <p>
-      Cada treino roda dentro de um <code class="inline">mlflow.start_run()</code>. Parâmetros,
-      métricas e o modelo serializado são logados automaticamente, e toda execução vira um <em>run</em>
-      comparável na interface do MLflow. É a base do <strong>MLOps</strong>: rastreabilidade,
-      comparação entre runs e nenhum modelo sem proveniência.
+      Cada treino roda dentro de um <code class="inline">mlflow.start_run()</code>: parâmetros,
+      métricas e o modelo serializado são logados, e toda execução vira um <em>run</em> comparável na
+      interface. É a base do <strong>MLOps</strong> — rastreabilidade, comparação entre runs e nenhum
+      modelo sem proveniência.
     </p>
 
     <div class="codeblock">
@@ -804,28 +839,27 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
     <div class="sep">• • •</div>
 
     <!-- ══════════════ MÉTRICA ══════════════ -->
-    <h2>Métrica de avaliação</h2>
+    <h2 id="metrica">Métrica de avaliação</h2>
     <p>
       O desbalanceamento determina a métrica. Com <strong>acurácia</strong>, um modelo que sempre
       previsse “não cancela” acertaria ~74% — inútil, pois erraria justamente os clientes relevantes.
       A métrica principal é a <strong>AUC-ROC</strong>: mede a capacidade de <em>ordenar</em> clientes
-      por risco, independe do limiar de decisão e é robusta a classes desbalanceadas. AUC 0,5 equivale
-      a aleatório; 1,0 é separação perfeita. F1 (equilíbrio entre precisão e recall) e acurácia entram
-      como métricas secundárias.
+      por risco, independe do limiar de decisão e é robusta a classes desbalanceadas (0,5 = aleatório;
+      1,0 = separação perfeita). F1 e acurácia entram como secundárias.
     </p>
     <p>
       A <strong>matriz de confusão</strong> traduz a métrica para o negócio: um <em>falso negativo</em>
-      é um cliente que vai cancelar e não foi detectado — perda de receita. Um <em>falso positivo</em>
-      é um cliente fiel marcado como risco — custo de uma ação de retenção desnecessária. O peso
-      relativo entre os dois define a calibração do limiar.
+      é um cliente que vai cancelar e não foi detectado — perda de receita; um <em>falso positivo</em>
+      é um cliente fiel marcado como risco — custo de uma ação de retenção desnecessária. O peso entre
+      os dois calibra o limiar.
     </p>
 
     <!-- ══════════════ RESULTADOS ══════════════ -->
     <h2 id="resultados">Resultados</h2>
     <p>
-      Treinados e avaliados no mesmo conjunto de teste, os três modelos ficaram em empate técnico,
-      todos na faixa de AUC <strong>0,82</strong>. O melhor resultado, por margem mínima, foi do
-      modelo mais simples:
+      Treinados e avaliados no mesmo conjunto de teste, os três ficaram em empate técnico, todos na
+      faixa de AUC <strong>0,82</strong>. O melhor resultado, por margem mínima, foi do modelo mais
+      simples:
     </p>
 
     <div class="tbl-wrap">
@@ -864,25 +898,24 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
 
     <h3>Por que o modelo linear teve o melhor desempenho</h3>
     <p>
-      Quando um modelo linear empata com Random Forest e GBT, a fronteira entre churn e retenção
-      neste dataset é <strong>majoritariamente linear</strong>. Após o one-hot encoding, as variáveis
-      mais preditivas (tipo de contrato, tenure, método de pagamento) separam bem as classes sem
-      interações complexas, e os ensembles não encontraram estrutura não-linear relevante para
-      explorar.
+      Quando um modelo linear empata com Random Forest e GBT, a fronteira entre churn e retenção neste
+      dataset é <strong>majoritariamente linear</strong>. Após o one-hot encoding, as variáveis mais
+      preditivas (tipo de contrato, tenure, método de pagamento) separam bem as classes sem interações
+      complexas, e os ensembles não encontraram estrutura não-linear relevante para explorar.
     </p>
     <p>
       Pelo princípio da <strong>parcimônia</strong>, entre modelos de desempenho equivalente escolhe-se
-      o mais simples. A Regressão Logística treina em segundos, é simples de servir e é
-      <strong>interpretável</strong>: a equipe de retenção consegue ler <em>por que</em> um cliente
-      foi marcado como risco. Para um caso de uso que orienta ações humanas, a interpretabilidade pesa
-      mais do que 0,3% de AUC. Essa foi a lógica de seleção; o melhor AUC apenas confirmou a decisão.
+      o mais simples. A Regressão Logística treina em segundos, é simples de servir e
+      <strong>interpretável</strong>: a equipe de retenção lê <em>por que</em> um cliente foi marcado
+      como risco. Para um caso de uso que orienta ações humanas, a interpretabilidade pesa mais do que
+      0,3% de AUC. Essa foi a lógica de seleção; o melhor AUC apenas confirmou a decisão.
     </p>
 
     <div class="sep">• • •</div>
 
     <!-- ══════════════ UNITY CATALOG ══════════════ -->
     <p class="stage-label">ETAPA 06 — GOVERNANÇA &amp; INFERÊNCIA</p>
-    <h2>Governança e inferência</h2>
+    <h2 id="governanca">Governança e inferência</h2>
     <p>
       Um bom run no MLflow não equivale a aptidão para produção. O modelo selecionado é registrado no
       <strong>Unity Catalog Model Registry</strong> — com uma <em>signature</em> que define o contrato
@@ -891,9 +924,8 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
       versionado, auditável, com rollback por <em>alias</em>).
     </p>
     <p>
-      Com o modelo promovido, a etapa final é a <strong>inferência em batch</strong>. O modelo pontua
-      a base de clientes, extrai a probabilidade de churn da classe positiva e a traduz em faixas
-      acionáveis pela equipe de CRM:
+      Com o modelo promovido, a <strong>inferência em batch</strong> pontua a base de clientes, extrai
+      a probabilidade de churn da classe positiva e a traduz em faixas acionáveis pela equipe de CRM:
     </p>
 
     <div class="tbl-wrap">
@@ -914,7 +946,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
     </p>
 
     <div class="codeblock">
-      <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">06_batch_inference.py</span></div>
+      <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">06_avaliacao_batch_inference.py</span></div>
 <pre><span class="c"># Carrega o modelo promovido no Unity Catalog e pontua a base inteira</span>
 model    = mlflow.spark.<span class="f">load_model</span>(<span class="s">"models:/portfolio.default.telco-churn-predictor/1"</span>)
 df_preds = model.<span class="f">transform</span>(df_gold_inference)
@@ -935,13 +967,13 @@ df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<s
     <div class="sep">• • •</div>
 
     <!-- ══════════════ FECHAMENTO ══════════════ -->
-    <h2>Considerações finais</h2>
+    <h2 id="fim">Considerações finais</h2>
     <p>
-      O modelo selecionado tem AUC 0,826. O resultado principal do projeto, porém, não é o modelo, e
-      sim o <strong>sistema</strong> em torno dele: a arquitetura Medallion que mantém o dado
-      confiável, o MLflow que torna cada experimento reproduzível, o Unity Catalog que governa a
-      promoção e a inferência em batch que converte probabilidade em ação. Trocar o algoritmo é uma
-      alteração pontual; a fundação é o que sustenta o pipeline.
+      O modelo selecionado tem AUC 0,826. Mas o resultado principal não é o modelo, e sim o
+      <strong>sistema</strong> em torno dele: a arquitetura Medallion que mantém o dado confiável, o
+      MLflow que torna cada experimento reproduzível, o Unity Catalog que governa a promoção e a
+      inferência em batch que converte probabilidade em ação. Trocar o algoritmo é uma alteração
+      pontual; a fundação é o que sustenta o pipeline.
     </p>
 
     <div class="takeaways">
@@ -994,16 +1026,30 @@ df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<s
   </footer>
 
   <script>
-    // reading-progress bar
+    // reading-progress bar + scroll-spy do índice lateral
     const bar = document.getElementById('progress');
-    const onScroll = () => {
+    const tocLinks = [...document.querySelectorAll('.toc a')];
+    const sections = [...document.querySelectorAll('article h2[id]')];
+    const alias = { resultados: 'metrica' };   // "Resultados" ativa o item "Métrica & resultados"
+
+    const update = () => {
       const h = document.documentElement;
-      const scrolled = h.scrollTop;
       const height = h.scrollHeight - h.clientHeight;
-      bar.style.width = (height > 0 ? (scrolled / height) * 100 : 0) + '%';
+      bar.style.width = (height > 0 ? (h.scrollTop / height) * 100 : 0) + '%';
+
+      let currentId = sections.length ? sections[0].id : null;
+      for (const s of sections) {
+        if (s.getBoundingClientRect().top - 100 <= 0) currentId = s.id;
+      }
+      const targetId = alias[currentId] || currentId;
+      for (const a of tocLinks) {
+        a.classList.toggle('active', a.dataset.target === targetId);
+      }
     };
-    document.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+
+    document.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
   </script>
 </body>
 </html>
