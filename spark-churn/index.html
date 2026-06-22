@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
     :root {
       --bg:          #ffffff;
       --bg-soft:     #fafafa;
@@ -36,7 +36,7 @@
       --mono:  'JetBrains Mono', ui-monospace, monospace;
       --read:  680px;
     }
-
+ 
     html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
     body {
       background: var(--bg);
@@ -47,18 +47,18 @@
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
     }
-
+ 
     ::selection { background: var(--hl); }
     ::-webkit-scrollbar { width: 10px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 6px; }
-
+ 
     /* ── reading-progress bar ── */
     #progress {
       position: fixed; top: 0; left: 0; height: 3px; width: 0%;
       background: var(--accent); z-index: 200; transition: width 0.1s linear;
     }
-
+ 
     /* ── nav ── */
     nav {
       position: sticky; top: 0; z-index: 100;
@@ -97,12 +97,27 @@
     }
     .nav-cta:hover { background: var(--accent-ink); transform: translateY(-1px); }
     @media (max-width: 640px) { .nav-link.hide-sm { display: none; } }
-
+ 
+    /* ── layout: article + índice lateral ── */
+    .page-layout {
+      display: grid;
+      grid-template-columns: 210px minmax(0, var(--read));
+      gap: 0 52px;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 24px;
+      align-items: start;
+    }
+    @media (max-width: 1020px) {
+      .page-layout { grid-template-columns: 1fr; max-width: var(--read); }
+    }
+ 
     /* ── índice lateral (scroll-spy) ── */
     .toc {
-      position: fixed; top: 118px; left: calc(50% - 562px);
-      width: 198px; max-height: calc(100vh - 150px); overflow-y: auto;
-      z-index: 50; font-family: var(--sans);
+      position: sticky; top: 78px;
+      max-height: calc(100vh - 100px); overflow-y: auto;
+      font-family: var(--sans);
+      padding-top: 60px;       /* alinha visualmente com o kicker do artigo */
     }
     .toc::-webkit-scrollbar { width: 0; }
     .toc-head {
@@ -121,12 +136,12 @@
     .toc a.active {
       color: var(--accent-ink); font-weight: 600; border-left-color: var(--accent);
     }
-    @media (max-width: 1199px) { .toc { display: none; } }
-
+    @media (max-width: 1020px) { .toc { display: none; } }
+ 
     /* ── article scaffold ── */
-    article { max-width: var(--read); margin: 0 auto; padding: 0 24px; }
+    article { min-width: 0; padding: 0; }
     .wide   { max-width: 920px; margin: 0 auto; padding: 0 24px; }
-
+ 
     .kicker {
       font-family: var(--sans); font-size: 13px; font-weight: 700;
       letter-spacing: 1.6px; text-transform: uppercase;
@@ -142,7 +157,7 @@
       line-height: 1.42; color: var(--ink-soft); font-weight: 400;
       margin-bottom: 36px;
     }
-
+ 
     /* byline */
     .byline { display: flex; align-items: center; gap: 14px; padding: 12px 0 0; }
     .avatar {
@@ -155,9 +170,9 @@
     .byline-name { font-size: 15px; font-weight: 600; color: var(--ink); }
     .byline-sub  { font-size: 14px; color: var(--ink-soft); }
     .byline-sub .dot { margin: 0 6px; opacity: 0.5; }
-
+ 
     .header-rule { border: none; border-top: 1px solid var(--line); margin: 34px 0 10px; }
-
+ 
     /* hero figure */
     .hero-fig { margin: 40px 0 8px; }
     .hero-stage {
@@ -181,7 +196,7 @@
       font-family: var(--sans); font-size: 13.5px; color: var(--ink-faint);
       text-align: center; margin-top: 12px;
     }
-
+ 
     /* body typography */
     article p { margin: 0 0 28px; }
     .lead-p::first-letter {
@@ -207,16 +222,16 @@
     article a:hover { color: var(--accent); }
     strong { color: var(--ink); font-weight: 600; }
     em { font-style: italic; }
-
+ 
     code.inline {
       font-family: var(--mono); font-size: 0.82em;
       background: var(--code-bg); border: 1px solid var(--line-soft);
       padding: 1px 6px; border-radius: 5px; color: #b91c1c; white-space: nowrap;
     }
-
+ 
     /* divider */
     .sep { text-align: center; margin: 48px 0; color: var(--ink-faint); letter-spacing: 8px; font-size: 14px; }
-
+ 
     /* blockquote / pull quote */
     blockquote {
       margin: 36px 0; padding: 2px 0 2px 26px;
@@ -224,7 +239,7 @@
       font-style: italic; font-size: 24px; line-height: 1.45; color: var(--ink);
     }
     blockquote.small { font-size: 20px; }
-
+ 
     /* callout */
     .callout {
       margin: 32px 0; padding: 20px 24px;
@@ -238,7 +253,7 @@
     }
     .callout p { margin: 0 0 12px; }
     .callout p:last-child { margin: 0; }
-
+ 
     /* code block */
     .codeblock {
       margin: 30px 0; background: #0d1117; border-radius: 10px; overflow: hidden;
@@ -260,7 +275,7 @@
     .codeblock .s { color: #a5d6a3; }
     .codeblock .f { color: #79c0ff; }
     .codeblock .n { color: #f0883e; }
-
+ 
     /* tables */
     .tbl-wrap { margin: 32px 0; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: 15px; }
@@ -278,7 +293,7 @@
       padding: 2px 9px; border-radius: 999px; white-space: nowrap;
     }
     .bar { display: inline-block; height: 7px; border-radius: 4px; background: var(--accent); vertical-align: middle; margin-left: 8px; }
-
+ 
     /* medallion cards */
     .medallion { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 32px 0; }
     .med-card { border: 1px solid var(--line); border-radius: 10px; padding: 20px; background: var(--bg); }
@@ -292,7 +307,7 @@
     .med-card h4 { font-family: var(--sans); font-size: 16px; color: var(--ink); margin-bottom: 6px; }
     .med-card p  { font-size: 14.5px; line-height: 1.5; color: var(--ink-soft); margin: 0; font-family: var(--sans); }
     @media (max-width: 640px) { .medallion { grid-template-columns: 1fr; } }
-
+ 
     /* model cards */
     .model-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 30px 0; }
     .model-card { border: 1px solid var(--line); border-radius: 10px; padding: 22px 24px; }
@@ -309,14 +324,14 @@
       background: var(--code-bg); border: 1px solid var(--line-soft);
       padding: 8px 12px; border-radius: 6px; overflow-x: auto;
     }
-
+ 
     /* stat strip */
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 36px 0; }
     .stat { text-align: center; padding: 8px; }
     .stat .s-num { font-family: var(--sans); font-weight: 800; font-size: clamp(26px, 5vw, 34px); letter-spacing: -1px; color: var(--ink); }
     .stat .s-lab { font-family: var(--sans); font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
     @media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
-
+ 
     /* insight rows */
     .insights { margin: 30px 0; }
     .ins-row { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line-soft); align-items: flex-start; }
@@ -324,7 +339,7 @@
     .ins-stat { font-family: var(--mono); font-weight: 600; font-size: 20px; color: var(--accent-ink); flex: 0 0 88px; }
     .ins-txt { font-family: var(--sans); font-size: 15.5px; line-height: 1.5; }
     .ins-txt b { color: var(--ink); }
-
+ 
     /* takeaways */
     .takeaways {
       margin: 44px 0; padding: 28px 30px; border-radius: 12px;
@@ -341,7 +356,7 @@
       content: "✓"; position: absolute; left: 0; top: 0;
       color: var(--accent); font-weight: 700;
     }
-
+ 
     /* tags */
     .tags { display: flex; flex-wrap: wrap; gap: 9px; margin: 44px 0 0; }
     .tag {
@@ -350,7 +365,7 @@
       padding: 6px 14px; border-radius: 999px; text-decoration: none;
     }
     .tag:hover { color: var(--ink); border-color: var(--ink-faint); }
-
+ 
     /* end byline / footer */
     .end-rule { border: none; border-top: 1px solid var(--line); margin: 48px 0 36px; }
     .end-card { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 40px; }
@@ -359,7 +374,7 @@
     .end-card .e-bio  { font-size: 15px; color: var(--ink-soft); line-height: 1.55; margin-top: 4px; }
     .end-card .e-links { margin-top: 10px; display: flex; gap: 14px; }
     .end-card .e-links a { font-size: 14px; font-weight: 600; }
-
+ 
     footer {
       border-top: 1px solid var(--line-soft); background: var(--bg-soft);
       padding: 40px 24px; text-align: center;
@@ -367,7 +382,7 @@
     footer p { font-family: var(--sans); font-size: 14px; color: var(--ink-soft); margin: 0; }
     footer a { color: var(--accent-ink); text-decoration: none; font-weight: 600; }
     footer a:hover { text-decoration: underline; }
-
+ 
     @media (max-width: 640px) {
       body { font-size: 18px; }
       .lead-p::first-letter { font-size: 60px; }
@@ -376,7 +391,7 @@
 </head>
 <body>
   <div id="progress"></div>
-
+ 
   <nav>
     <div class="nav-inner">
       <a class="nav-logo" href="https://projetoathos.com.br">
@@ -389,7 +404,8 @@
       <a class="nav-cta" href="https://github.com/athosroque/Databricks_churn" target="_blank" rel="noopener">Ver no GitHub</a>
     </div>
   </nav>
-
+ 
+  <div class="page-layout">
   <!-- índice lateral clicável (desktop) -->
   <aside class="toc" aria-label="Índice do artigo">
     <div class="toc-head">Índice</div>
@@ -406,7 +422,7 @@
       <li><a data-target="fim"           href="#fim">Considerações finais</a></li>
     </ul>
   </aside>
-
+ 
   <article>
     <p class="kicker">Machine Learning · Engenharia de Dados</p>
     <h1 class="title">Previsão de churn em escala: um pipeline de ML distribuído</h1>
@@ -415,7 +431,7 @@
       de três algoritmos de classificação e arquitetura de dados em camadas sobre Spark, Databricks
       e MLflow.
     </p>
-
+ 
     <div class="byline">
       <div class="avatar">A</div>
       <div class="byline-meta">
@@ -425,9 +441,9 @@
         </div>
       </div>
     </div>
-
+ 
     <hr class="header-rule" />
-
+ 
     <figure class="hero-fig">
       <div class="hero-stage">
         <div class="pipe-flow">
@@ -441,29 +457,29 @@
       </div>
       <figcaption>Fluxo de ponta a ponta: do CSV bruto à inferência em batch no Databricks.</figcaption>
     </figure>
-
+ 
     <p class="lead-p">
       Operadoras de telecom perdem clientes continuamente para o cancelamento — o <strong>churn</strong> —
       e adquirir um cliente novo custa várias vezes mais do que reter um existente. A pergunta de
       negócio do projeto é:
     </p>
-
+ 
     <blockquote>“Quais clientes têm maior probabilidade de cancelar nos próximos meses — e por quê?”</blockquote>
-
+ 
     <p>
       Responder exige mais do que treinar um modelo: exige um <strong>pipeline de ponta a ponta</strong>
       que lide com dado sujo, escala distribuída, rastreabilidade de experimentos e promoção governada.
       Este artigo percorre cada etapa — sobre Apache Spark, Databricks, Delta Lake, MLflow e Unity
       Catalog — com foco nos <strong>algoritmos</strong> e nas decisões que sustentam o resultado.
     </p>
-
+ 
     <div class="stats">
       <div class="stat"><div class="s-num">7.043</div><div class="s-lab">clientes no dataset</div></div>
       <div class="stat"><div class="s-num">~26%</div><div class="s-lab">taxa de churn (classe rara)</div></div>
       <div class="stat"><div class="s-num">3</div><div class="s-lab">algoritmos comparados</div></div>
       <div class="stat"><div class="s-num">0.826</div><div class="s-lab">AUC-ROC do melhor modelo</div></div>
     </div>
-
+ 
     <!-- ══════════════ SUPERVISIONADO ══════════════ -->
     <h2 id="supervisionado">Supervisionado ou não supervisionado?</h2>
     <p>
@@ -485,7 +501,7 @@
       O rótulo discreto distingue o problema de uma <em>regressão</em> (valor contínuo) e habilita
       métricas como AUC-ROC e F1.
     </p>
-
+ 
     <div class="callout">
       <span class="ct-tag">Nota de método</span>
       <p>
@@ -496,9 +512,9 @@
         complemento ao classificador.
       </p>
     </div>
-
+ 
     <div class="sep">• • •</div>
-
+ 
     <!-- ══════════════ MEDALLION ══════════════ -->
     <h2 id="arquitetura">Arquitetura Medallion</h2>
     <p>
@@ -507,7 +523,7 @@
       <strong>Delta Lake</strong>, cada uma com uma responsabilidade definida — permitindo
       reprocessar, auditar e reutilizar o dado sem reescrever o pipeline inteiro.
     </p>
-
+ 
     <div class="medallion">
       <div class="med-card">
         <span class="med-tag med-bronze">🥉 Bronze</span>
@@ -525,15 +541,15 @@
         <p>Variáveis derivadas e codificadas no formato que o modelo consome. É a única camada acoplada a este caso de uso.</p>
       </div>
     </div>
-
+ 
     <p>
       Delta Lake em vez de Parquet puro pelas <strong>transações ACID</strong>, versionamento e
       <em>time travel</em> — consultar o estado da tabela em qualquer versão anterior. Em um pipeline
       reexecutado dezenas de vezes, isso garante consistência e reprodutibilidade.
     </p>
-
+ 
     <div class="sep">• • •</div>
-
+ 
     <!-- ══════════════ BRONZE ══════════════ -->
     <p class="stage-label">ETAPA 01 — INGESTÃO</p>
     <h2 id="bronze">Bronze: ingestão sem transformação</h2>
@@ -543,19 +559,19 @@
       significado do dado entra aqui. Com o Bronze imutável, um bug na limpeza se corrige
       reprocessando, sem perda de dado.
     </p>
-
+ 
     <div class="codeblock">
       <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">01_ingestao_bronze.py</span></div>
 <pre><span class="c"># Lê a fonte pelo nome no Unity Catalog e persiste em Delta, sem tocar no conteúdo</span>
 df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.wa_fn_use_c_telco_customer_churn"</span>)
-
+ 
 (df_raw.write
    .<span class="f">format</span>(<span class="s">"delta"</span>)
    .<span class="f">mode</span>(<span class="s">"overwrite"</span>)
    .<span class="f">option</span>(<span class="s">"overwriteSchema"</span>, <span class="s">"true"</span>)
    .<span class="f">saveAsTable</span>(<span class="s">"portfolio.default.telco_bronze"</span>))   <span class="c"># 7.043 linhas preservadas</span></pre>
     </div>
-
+ 
     <!-- ══════════════ SILVER ══════════════ -->
     <p class="stage-label">ETAPA 02 — LIMPEZA</p>
     <h2 id="prata">Prata: limpeza e padronização</h2>
@@ -586,7 +602,7 @@ df_raw = spark.<span class="f">table</span>(<span class="s">"portfolio.default.w
       <strong>desbalanceamento de classes</strong>, com a classe-alvo na minoria. Esse número
       determina a escolha da métrica de avaliação mais adiante.
     </p>
-
+ 
     <div class="codeblock">
       <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">02_limpeza_prata.py</span></div>
 <pre><span class="c"># Espaço em branco em TotalCharges → 0.0 (clientes com tenure = 0 sem cobrança)</span>
@@ -597,15 +613,15 @@ df_silver = (df_bronze
   .<span class="f">withColumn</span>(<span class="s">"Churn"</span>,
       (F.<span class="f">col</span>(<span class="s">"Churn"</span>) == F.<span class="f">lit</span>(<span class="s">"Yes"</span>)).<span class="f">cast</span>(<span class="s">"int"</span>))   <span class="c"># "Yes"/"No" → 1/0</span>
   .<span class="f">drop</span>(<span class="s">"customerID"</span>))                               <span class="c"># sem poder preditivo</span>
-
+ 
 (df_silver.write
    .<span class="f">format</span>(<span class="s">"delta"</span>).<span class="f">mode</span>(<span class="s">"overwrite"</span>)
    .<span class="f">option</span>(<span class="s">"overwriteSchema"</span>, <span class="s">"true"</span>)
    .<span class="f">saveAsTable</span>(<span class="s">"portfolio.default.telco_silver"</span>))</pre>
     </div>
-
+ 
     <div class="sep">• • •</div>
-
+ 
     <!-- ══════════════ EDA ══════════════ -->
     <p class="stage-label">ETAPA 03 — EXPLORAÇÃO</p>
     <h2 id="eda">Análise exploratória (EDA com Spark SQL)</h2>
@@ -614,7 +630,7 @@ df_silver = (df_bronze
       linguagem declarativa rodando sobre um motor que escala para terabytes. Cada consulta testou
       uma hipótese de negócio, e os padrões resultantes <em>definiram as features</em> posteriores.
     </p>
-
+ 
     <div class="insights">
       <div class="ins-row">
         <div class="ins-stat">42,7%</div>
@@ -641,13 +657,13 @@ df_silver = (df_bronze
         <div class="ins-txt">quem cancela paga, em média, <b>mensalidade mais alta</b> — indício de sensibilidade a preço.</div>
       </div>
     </div>
-
+ 
     <p>
       Cada insight vira uma <strong>feature em potencial</strong> — tempo e tipo de contrato, serviço
       de internet, método de pagamento, número de serviços e cobrança mensal — base da engenharia de
       features adiante.
     </p>
-
+ 
     <div class="codeblock">
       <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">03_eda_spark_sql.sql</span></div>
 <pre><span class="c">-- Taxa de churn por tipo de contrato — hipótese de fidelização</span>
@@ -658,12 +674,12 @@ df_silver = (df_bronze
 <span class="k">FROM</span>    portfolio.default.telco_silver
 <span class="k">GROUP</span>   <span class="k">BY</span> Contract
 <span class="k">ORDER</span>   <span class="k">BY</span> churn_pct <span class="k">DESC</span>
-
+ 
 <span class="c">-- Resultado: Month-to-month 42,7% · One year 11,3% · Two year 2,8%</span></pre>
     </div>
-
+ 
     <div class="sep">• • •</div>
-
+ 
     <!-- ══════════════ GOLD / FEATURES ══════════════ -->
     <p class="stage-label">ETAPA 04 — ENGENHARIA DE FEATURES</p>
     <h2 id="ouro">Ouro: engenharia de features</h2>
@@ -675,7 +691,7 @@ df_silver = (df_bronze
       exemplo) e <code class="inline">transform()</code> os aplica; o mesmo objeto serializado é
       recarregado na inferência.
     </p>
-
+ 
     <h3>Os três estágios de codificação</h3>
     <p>
       <strong>StringIndexer</strong> — converte cada categoria em um índice inteiro, ordenado por
@@ -694,7 +710,7 @@ df_silver = (df_bronze
       <strong>VectorAssembler</strong> — reúne as categóricas codificadas e as numéricas em uma única
       coluna <code class="inline">features</code>, o vetor consumido pelos algoritmos.
     </p>
-
+ 
     <h3>Três features de domínio</h3>
     <p>
       Além das 21 variáveis originais, três features derivadas da EDA traduzem conhecimento de
@@ -719,14 +735,14 @@ df_silver = (df_bronze
         do treino e produz predições inválidas sem erro aparente.
       </p>
     </div>
-
+ 
     <div class="codeblock">
       <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">04_feature_engineering.py</span></div>
 <pre><span class="c"># Features de domínio — derivadas dos padrões encontrados na EDA</span>
 service_cols = [<span class="s">"PhoneService"</span>, <span class="s">"MultipleLines"</span>, <span class="s">"OnlineSecurity"</span>,
                 <span class="s">"OnlineBackup"</span>, <span class="s">"DeviceProtection"</span>, <span class="s">"TechSupport"</span>,
                 <span class="s">"StreamingTV"</span>, <span class="s">"StreamingMovies"</span>]
-
+ 
 df_gold = (df_silver
   .<span class="f">withColumn</span>(<span class="s">"num_services"</span>,
       <span class="f">sum</span>(F.<span class="f">when</span>(F.<span class="f">col</span>(c) == <span class="s">"Yes"</span>, <span class="n">1</span>).<span class="f">otherwise</span>(<span class="n">0</span>) <span class="k">for</span> c <span class="k">in</span> service_cols))
@@ -734,17 +750,17 @@ df_gold = (df_silver
       F.<span class="f">col</span>(<span class="s">"TotalCharges"</span>) / F.<span class="f">greatest</span>(F.<span class="f">col</span>(<span class="s">"tenure"</span>), F.<span class="f">lit</span>(<span class="n">1</span>)))
   .<span class="f">withColumn</span>(<span class="s">"is_new_customer"</span>,
       (F.<span class="f">col</span>(<span class="s">"tenure"</span>) &lt;= <span class="n">12</span>).<span class="f">cast</span>(<span class="s">"int"</span>)))
-
+ 
 <span class="c"># Pipeline: StringIndexer → OneHotEncoder → VectorAssembler</span>
 indexers  = [<span class="f">StringIndexer</span>(inputCol=c, outputCol=c+<span class="s">"_idx"</span>, handleInvalid=<span class="s">"keep"</span>) <span class="k">for</span> c <span class="k">in</span> cat_cols]
 encoders  = [<span class="f">OneHotEncoder</span>(inputCol=c+<span class="s">"_idx"</span>, outputCol=c+<span class="s">"_ohe"</span>, dropLast=<span class="k">True</span>)  <span class="k">for</span> c <span class="k">in</span> cat_cols]
 assembler = <span class="f">VectorAssembler</span>(inputCols=num_cols + [c+<span class="s">"_ohe"</span> <span class="k">for</span> c <span class="k">in</span> cat_cols], outputCol=<span class="s">"features"</span>)
-
+ 
 df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [assembler]).<span class="f">fit</span>(df_gold).<span class="f">transform</span>(df_gold)</pre>
     </div>
-
+ 
     <div class="sep">• • •</div>
-
+ 
     <!-- ══════════════ MODELOS ══════════════ -->
     <p class="stage-label">ETAPA 05 — TREINAMENTO</p>
     <h2 id="modelos">Os três classificadores</h2>
@@ -755,7 +771,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
       distinta para separar “permanece” de “cancela”, todos rodando <strong>distribuídos</strong> via
       Spark MLlib — não em scikit-learn de nó único.
     </p>
-
+ 
     <div class="model-grid">
       <div class="model-card">
         <div class="mc-head">
@@ -771,7 +787,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
         </p>
         <div class="mc-params">maxIter=100 · regParam=0.01 · elasticNetParam=0.0 (100% L2)</div>
       </div>
-
+ 
       <div class="model-card">
         <div class="mc-head">
           <h3>2 · Random Forest</h3>
@@ -786,7 +802,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
         </p>
         <div class="mc-params">numTrees=100 · maxDepth=8 · seed=42</div>
       </div>
-
+ 
       <div class="model-card">
         <div class="mc-head">
           <h3>3 · Gradient Boosted Trees</h3>
@@ -802,7 +818,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
         <div class="mc-params">maxIter=50 · maxDepth=5 · stepSize=0.1 · seed=42</div>
       </div>
     </div>
-
+ 
     <div class="callout">
       <span class="ct-tag">Bagging × Boosting</span>
       <p>
@@ -812,7 +828,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
         conjunto melhor que qualquer árvore isolada.
       </p>
     </div>
-
+ 
     <h3>Rastreamento com MLflow</h3>
     <p>
       Cada treino roda dentro de um <code class="inline">mlflow.start_run()</code>: parâmetros,
@@ -820,14 +836,14 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
       interface. É a base do <strong>MLOps</strong> — rastreabilidade, comparação entre runs e nenhum
       modelo sem proveniência.
     </p>
-
+ 
     <div class="codeblock">
       <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">05_treinamento_mlflow.py</span></div>
 <pre><span class="k">def</span> <span class="f">treinar_e_logar</span>(modelo, params, nome_run):
     <span class="k">with</span> mlflow.<span class="f">start_run</span>(run_name=nome_run):
         m     = modelo.<span class="f">fit</span>(df_train)
         preds = m.<span class="f">transform</span>(df_test)
-
+ 
         auc = evaluator_auc.<span class="f">evaluate</span>(preds)   <span class="c"># métrica de seleção</span>
         f1  = evaluator_f1.<span class="f">evaluate</span>(preds)
         mlflow.<span class="f">log_params</span>(params)
@@ -835,9 +851,9 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
         mlflow.spark.<span class="f">log_model</span>(m, <span class="s">"model"</span>)   <span class="c"># modelo versionado</span>
         <span class="k">return</span> m, preds</pre>
     </div>
-
+ 
     <div class="sep">• • •</div>
-
+ 
     <!-- ══════════════ MÉTRICA ══════════════ -->
     <h2 id="metrica">Métrica de avaliação</h2>
     <p>
@@ -853,7 +869,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
       é um cliente fiel marcado como risco — custo de uma ação de retenção desnecessária. O peso entre
       os dois calibra o limiar.
     </p>
-
+ 
     <!-- ══════════════ RESULTADOS ══════════════ -->
     <h2 id="resultados">Resultados</h2>
     <p>
@@ -861,7 +877,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
       faixa de AUC <strong>0,82</strong>. O melhor resultado, por margem mínima, foi do modelo mais
       simples:
     </p>
-
+ 
     <div class="tbl-wrap">
       <table>
         <thead>
@@ -895,7 +911,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
         </tbody>
       </table>
     </div>
-
+ 
     <h3>Por que o modelo linear teve o melhor desempenho</h3>
     <p>
       Quando um modelo linear empata com Random Forest e GBT, a fronteira entre churn e retenção neste
@@ -910,9 +926,9 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
       como risco. Para um caso de uso que orienta ações humanas, a interpretabilidade pesa mais do que
       0,3% de AUC. Essa foi a lógica de seleção; o melhor AUC apenas confirmou a decisão.
     </p>
-
+ 
     <div class="sep">• • •</div>
-
+ 
     <!-- ══════════════ UNITY CATALOG ══════════════ -->
     <p class="stage-label">ETAPA 06 — GOVERNANÇA &amp; INFERÊNCIA</p>
     <h2 id="governanca">Governança e inferência</h2>
@@ -927,7 +943,7 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
       Com o modelo promovido, a <strong>inferência em batch</strong> pontua a base de clientes, extrai
       a probabilidade de churn da classe positiva e a traduz em faixas acionáveis pela equipe de CRM:
     </p>
-
+ 
     <div class="tbl-wrap">
       <table>
         <thead><tr><th>Faixa de risco</th><th>Probabilidade de churn</th><th>Ação recomendada</th></tr></thead>
@@ -944,28 +960,28 @@ df_features = <span class="f">Pipeline</span>(stages=indexers + encoders + [asse
       parâmetros de negócio, ajustáveis conforme o custo relativo entre perder um cliente e executar
       uma ação de retenção desnecessária.
     </p>
-
+ 
     <div class="codeblock">
       <div class="cb-bar"><span class="dot cb-r"></span><span class="dot cb-y"></span><span class="dot cb-g"></span><span class="cb-name">06_avaliacao_batch_inference.py</span></div>
 <pre><span class="c"># Carrega o modelo promovido no Unity Catalog e pontua a base inteira</span>
 model    = mlflow.spark.<span class="f">load_model</span>(<span class="s">"models:/portfolio.default.telco-churn-predictor/1"</span>)
 df_preds = model.<span class="f">transform</span>(df_gold_inference)
-
+ 
 <span class="c"># Extrai p(churn) do vetor de probabilidades e classifica por faixa</span>
 extract_prob = F.<span class="f">udf</span>(<span class="k">lambda</span> v: <span class="f">float</span>(v[<span class="n">1</span>]), DoubleType())
-
+ 
 df_scores = (df_preds
   .<span class="f">withColumn</span>(<span class="s">"churn_prob"</span>, <span class="f">extract_prob</span>(F.<span class="f">col</span>(<span class="s">"probability"</span>)))
   .<span class="f">withColumn</span>(<span class="s">"risco"</span>,
       F.<span class="f">when</span>(F.<span class="f">col</span>(<span class="s">"churn_prob"</span>) >= <span class="n">0.70</span>, <span class="s">"ALTO"</span>)
        .<span class="f">when</span>(F.<span class="f">col</span>(<span class="s">"churn_prob"</span>) >= <span class="n">0.40</span>, <span class="s">"MÉDIO"</span>)
        .<span class="f">otherwise</span>(<span class="s">"BAIXO"</span>)))
-
+ 
 df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<span class="f">mode</span>(<span class="s">"overwrite"</span>).<span class="f">saveAsTable</span>(<span class="s">"portfolio.default.telco_predictions"</span>)</pre>
     </div>
-
+ 
     <div class="sep">• • •</div>
-
+ 
     <!-- ══════════════ FECHAMENTO ══════════════ -->
     <h2 id="fim">Considerações finais</h2>
     <p>
@@ -975,7 +991,7 @@ df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<s
       inferência em batch que converte probabilidade em ação. Trocar o algoritmo é uma alteração
       pontual; a fundação é o que sustenta o pipeline.
     </p>
-
+ 
     <div class="takeaways">
       <h3>Em resumo</h3>
       <ul>
@@ -987,7 +1003,7 @@ df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<s
         <li><strong>MLOps completo</strong> — Medallion + MLflow + Unity Catalog: dado confiável, experimentos rastreados, promoção governada, score por cliente.</li>
       </ul>
     </div>
-
+ 
     <div class="tags">
       <a class="tag" href="#">#MachineLearning</a>
       <a class="tag" href="#">#ApacheSpark</a>
@@ -997,9 +1013,9 @@ df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<s
       <a class="tag" href="#">#AprendizadoSupervisionado</a>
       <a class="tag" href="#">#MLflow</a>
     </div>
-
+ 
     <hr class="end-rule" />
-
+ 
     <div class="end-card">
       <div class="avatar">A</div>
       <div class="e-meta">
@@ -1016,7 +1032,8 @@ df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<s
       </div>
     </div>
   </article>
-
+  </div><!-- /.page-layout -->
+ 
   <footer>
     <p>
       Escrito por <a href="https://github.com/athosroque">Athos Roque</a> ·
@@ -1024,19 +1041,19 @@ df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<s
       Brasília, DF
     </p>
   </footer>
-
+ 
   <script>
     // reading-progress bar + scroll-spy do índice lateral
     const bar = document.getElementById('progress');
     const tocLinks = [...document.querySelectorAll('.toc a')];
     const sections = [...document.querySelectorAll('article h2[id]')];
     const alias = { resultados: 'metrica' };   // "Resultados" ativa o item "Métrica & resultados"
-
+ 
     const update = () => {
       const h = document.documentElement;
       const height = h.scrollHeight - h.clientHeight;
       bar.style.width = (height > 0 ? (h.scrollTop / height) * 100 : 0) + '%';
-
+ 
       let currentId = sections.length ? sections[0].id : null;
       for (const s of sections) {
         if (s.getBoundingClientRect().top - 100 <= 0) currentId = s.id;
@@ -1046,7 +1063,7 @@ df_scores.write.<span class="f">format</span>(<span class="s">"delta"</span>).<s
         a.classList.toggle('active', a.dataset.target === targetId);
       }
     };
-
+ 
     document.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update, { passive: true });
     update();
